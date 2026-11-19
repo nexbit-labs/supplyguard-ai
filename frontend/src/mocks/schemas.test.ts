@@ -27,7 +27,11 @@ describe('RC-000045 fixture vs ai/schemas', () => {
     const validate = makeAjv().compile(load('recovery_plan.schema.json'));
     const plan = {
       risk_case_id: riskCaseDetail45.id,
-      options: riskCaseDetail45.recommendations.map(({ id: _id, ...opt }) => opt),
+      options: riskCaseDetail45.recommendations.map((rec) => {
+        const opt: Record<string, unknown> = { ...rec };
+        delete opt.id;
+        return opt;
+      }),
       no_viable_option_reason: riskCaseDetail45.no_viable_option_reason,
     };
     const ok = validate(plan);

@@ -57,7 +57,10 @@ Types: feat, fix, test, docs, refactor, chore, ci. Scope = app or folder (`integ
 | Sync task branches | same workflow after a merge, and `.github/workflows/branch-sync.yml` on any push to `collaboration` -> `scripts/gitflow.py sync-branches` | after `collaboration` changes | merges the new `collaboration` into every open task branch on GitHub; conflicts are listed in the run summary |
 | Auto-pull (local) | `.claude/settings.json` SessionStart hook -> `scripts/gitflow.py local-sync` | every Claude Code start/resume | updates local `collaboration`, pulls your task branch, merges latest `collaboration` into it; skipped when you have uncommitted changes |
 | Progress board | `.github/workflows/progress.yml` | push to `collaboration`/`main` touching `tasks/**` | regenerates `PROGRESS.md` |
-| Checks | `scripts/run_checks.py` | auto-merge, and locally any time | runs every suite that exists: ai, mock-erp, backend (Postgres via `DATABASE_URL`), frontend typecheck/test/build |
+| Checks | `scripts/run_checks.py` | auto-merge, and locally any time | runs every suite that exists: ai, mock-erp, backend (Postgres via `DATABASE_URL`), frontend lint/typecheck/test/build (backend also ruff) |
+| CI | `.github/workflows/ci.yml` | task-branch pushes (`roop/**`, `nikhil/**`, `uday/**`), PRs to `collaboration`/`main`, pushes to `collaboration`/`main`, nightly, manual | same checks as `run_checks.py` (backend on Postgres 16, like the auto-merge gate); new top-level test folders must also be added to the CI matrix; `ci-ok` ("CI OK") is the aggregate check |
+
+Pushes made with the `GITHUB_TOKEN` (bot merges) do not trigger CI, so `collaboration` is verified by the nightly/manual CI run, while the auto-merge gate runs `run_checks.py`.
 
 If auto-merge shows a red X: open the run summary on the Actions tab - it says conflict (owner runs `/sync`, pushes) or failing checks (fix, push). The next push retries automatically.
 Run it by hand: `python scripts/gitflow.py local-sync` (your machine), Actions tab -> auto-merge -> Run workflow (any branch).

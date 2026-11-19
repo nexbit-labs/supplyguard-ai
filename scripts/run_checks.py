@@ -7,13 +7,16 @@
 Suites are detected by files, so new parts of the project join automatically:
     <folder>/tests/         -> pytest for every top-level folder with tests (ai, data, mock-erp, ...);
                                deps from <folder>/requirements*.txt; mock-erp runs from its own folder
-    backend/manage.py       -> pytest in backend/ (deps: backend/requirements*.txt; DB from DATABASE_URL)
-    frontend/package.json   -> npm ci/install, typecheck (if script), test, build
+    backend/manage.py       -> ruff check + pytest in backend/ (deps: backend/requirements*.txt; DB from
+                               DATABASE_URL); ruff is skipped with a notice if not installed (no --install)
+    frontend/package.json   -> npm ci/install, then lint, typecheck, test, build (each only if the script exists)
+Mirrors .github/workflows/ci.yml so the auto-merge gate matches CI.
 Exit code is non-zero if any suite fails.
 """
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import os
 import shutil
@@ -55,7 +58,14 @@ def backend(install: bool) -> bool | None:
         return None
     if install and not pip_install(folder / "requirements.txt", folder / "requirements-dev.txt"):
         return False
-    return run([PY, "-m", "pytest", "-q"], folder)
+    ok = True
+    if importlib.util.find_spec("ruff") is not None:
+        ok = run([PY, "-m", "ruff", "check", "."], folder)
+    elif shutil.which("ruff"):
+        ok = run([shutil.which("ruff"), "check", "."], folder)
+    else:
+        print("ruff not installed - backend lint skipped")
+    return run([PY, "-m", "pytest", "-q"], folder) and ok
 
 
 def frontend(install: bool) -> bool | None:
@@ -72,7 +82,7 @@ def frontend(install: bool) -> bool | None:
         if not run([npm, "ci" if (folder / "package-lock.json").exists() else "install"], folder):
             return False
     ok = True
-    for script in ("typecheck", "test", "build"):
+    for script in ("lint", "typecheck", "test", "build"):
         if script in scripts:
             ok = run([npm, "run", script], folder) and ok
     return ok

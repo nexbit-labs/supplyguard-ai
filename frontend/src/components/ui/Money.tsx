@@ -11,6 +11,7 @@ const LOCALES: Record<string, string> = { INR: 'en-IN' };
  * Format a money amount. Accepts decimal strings ("420000.00") as returned by the API.
  * INR uses Indian digit grouping: 420000.00 -> ₹4,20,000.00. Invalid amounts give an em dash; null/undefined gives "Not available".
  */
+// eslint-disable-next-line react-refresh/only-export-components -- formatter shared with Money component; pure function
 export function formatMoney(value: MoneyValue | null | undefined): string {
   if (!value) return 'Not available';
   const { amount, currency } = value;
