@@ -161,7 +161,7 @@
 - **Notes:** -
 
 ### U-12: Local + hosted deployment
-- **Status:** todo
+- **Status:** in-progress
 - **Sprint:** S1 tunnel (by 28 Nov), S4 hosted (15-20 Dec) | **Est:** 2d | **Depends:** U-02, N-03
 - **Branch:** `uday/U-12-deploy`
 - **Model hint:** sonnet / medium
@@ -171,4 +171,4 @@
   - [ ] Hosted URLs reachable by Boomi over HTTPS
   - [ ] `.env.example` complete, no real secrets committed
 - **Done in:** -
-- **Notes:** -
+- **Notes:** Plan: (1) compose adds mock-erp + frontend (node image, bind mount, no edits in frontend/) + root .dockerignore [implementer sonnet]; (2) .env.example complete [implementer sonnet]; (3) docs/INSTALL.md + deploy/README.md tunnel (cloudflared) + deploy/render.yaml hosted blueprint [implementer sonnet]; (4) verify fresh `docker compose up` [test-runner haiku]; (5) review [reviewer opus]. Hosted URLs (S4) need a hosting account - human step.

@@ -1,0 +1,9 @@
+# Applies to builds with context "." (mock-erp). Keep data/ and mock-erp/.
+.git
+**/node_modules
+**/.venv
+**/__pycache__
+**/*.pyc
+frontend
+.claude
+.env
