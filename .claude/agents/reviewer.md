@@ -1,6 +1,6 @@
 ---
 name: reviewer
-description: Gatekeeper review before a task moves to review/done. Reviews the task branch diff against the task's acceptance criteria, docs/CONTRACTS.md and the security/governance rules. Use for every task, and for anything touching auth, tenancy, approvals, ERP writes or AI output validation.
+description: Gatekeeper review before a task moves to review/done. Reviews the task branch diff against the task's acceptance criteria, docs/CONTRACTS.md and the security/governance rules. Expensive (Opus/high): use ONLY for auth/tenancy, approvals, ERP writes, AI output validation, the state machine, security reviews, CONTRACTS changes, or when reviewer-lite says ESCALATE. Everything else uses reviewer-lite.
 model: opus
 effort: high
 tools: Read, Grep, Glob, Bash
