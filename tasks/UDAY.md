@@ -9,12 +9,12 @@
 
 ## Handoff
 <!-- Overwrite this block at the end of EVERY session (run /handoff). Newest state only; history goes to progress/SESSION_LOG.md -->
-- **Last updated:** 2026-11-19 (U-02 done and merged, review follow-ups applied)
-- **Current task:** -
-- **Branch:** `uday/U-02-backend-scaffold`
-- **Where I left off:** U-02 merged into collaboration; follow-up fixes (error body, accounts.User, compose/Docker hardening) pushed on the same branch. Everyone who ran the old scaffold must `docker compose down -v` once.
-- **Next step:** U-01 (manual Boomi checks) and S-01 (freeze contracts with Roop + Nikhil), which unblocks U-03.
-- **Blockers:** U-03 waits on S-01; U-01 needs the Boomi UI.
+- **Last updated:** 2026-11-19 (autopilot run by Roop's machine; stopped on request)
+- **Current task:** U-12 (in-progress); U-01 blocked; S-01 blocked
+- **Branch:** `uday/U-12-deploy` (also pushed: `uday/U-01-boomi-env`, `uday/S-01-contracts`)
+- **Where I left off:** U-12 compose (mock-erp + frontend), .dockerignore, .env.example, docs/INSTALL.md, deploy/README.md (tunnel) and deploy/render.yaml written; reviewer findings (security blocker on tunnel defaults + majors) fixed in fe30fdc; backend pytest 23 passed, ruff clean. `docker compose up` on a fresh clone NOT yet run (Docker Desktop engine did not start after an update).
+- **Next step:** start Docker Desktop, `cp .env.example .env && docker compose up --build`, check frontend :5173, backend :8000/api/health, mock-erp :8081/health; tick the first U-12 box, re-run reviewer on fe30fdc, set U-12 review. Also: fill `docs/BOOMI_ENV.md` (U-01) and run the S-01 call with `docs/CONTRACTS_V1_AGENDA.md`.
+- **Blockers:** U-01 needs Uday logged in to Boomi; S-01 needs the 30-min call (unblocks U-03); U-12 hosted part needs a Render account (S4)
 
 ---
 
@@ -171,4 +171,4 @@
   - [ ] Hosted URLs reachable by Boomi over HTTPS
   - [ ] `.env.example` complete, no real secrets committed
 - **Done in:** -
-- **Notes:** Plan: (1) compose adds mock-erp + frontend (node image, bind mount, no edits in frontend/) + root .dockerignore [implementer sonnet]; (2) .env.example complete [implementer sonnet]; (3) docs/INSTALL.md + deploy/README.md tunnel (cloudflared) + deploy/render.yaml hosted blueprint [implementer sonnet]; (4) verify fresh `docker compose up` [test-runner haiku]; (5) review [reviewer opus]. Hosted URLs (S4) need a hosting account - human step.
+- **Notes:** Done: compose stack, tunnel guide, Render blueprint, settings for Render/proxy, reviewer fixes (fe30fdc). Left: (1) verify `docker compose up --build` on a fresh clone [test-runner haiku]; (2) re-review fe30fdc [reviewer opus]; (3) S4: create Render account, apply deploy/render.yaml, check HTTPS from Boomi; whitenoise for admin static under DEBUG=False.

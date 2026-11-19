@@ -8,7 +8,7 @@
 |---|---|---|---|---|---|---|---|---|
 | Roop | 1 | 0 | 0 | 0 | 11 | 0 | 8% | R-09 |
 | Nikhil | 0 | 0 | 3 | 0 | 11 | 0 | 0% | - |
-| Uday | 1 | 0 | 0 | 0 | 11 | 0 | 8% | U-01 |
+| Uday | 1 | 1 | 0 | 0 | 10 | 0 | 8% | U-12 |
 | Shared | 0 | 1 | 0 | 0 | 4 | 0 | 0% | S-01 |
 
 ## Task board
@@ -31,7 +31,7 @@
 | U-05 | Audit service + correlation-id middleware | Uday | S1 (24-26 Nov) | todo | 0/2 | - |
 | U-06 | Event intake + Boomi client (Django `apps/integrations`) | Uday | S1 (26-30 Nov) | todo | 0/5 | - |
 | U-07 | Boomi ERP read processes + canonical profiles | Uday | S1 (25-30 Nov) | todo | 0/3 | - |
-| U-12 | Local + hosted deployment | Uday | S1 tunnel (by 28 Nov), S4 hosted (15-20 Dec) | todo | 0/3 | - |
+| U-12 | Local + hosted deployment | Uday | S1 tunnel (by 28 Nov), S4 hosted (15-20 Dec) | in-progress | 0/3 | - |
 | N-05 | Supplier Risk Analyst agent (Agentstudio) | Nikhil | S2 (1-4 Dec) | todo | 0/3 | - |
 | N-06 | Recovery Planning agent (Agentstudio) | Nikhil | S2 (3-6 Dec) | todo | 0/3 | - |
 | N-07 | Agent output validator + persistence | Nikhil | S2 (4-7 Dec) | todo | 0/3 | - |
@@ -78,18 +78,24 @@
 - **Blockers:** acceptance "Runs via docker compose up mock-erp" needs Uday's docker-compose.yml; S-01 ratification for N-01/N-02/N-03 contract additions.
 
 ### Uday
-- **Last updated:** 2026-11-19 (U-02 done and merged, review follow-ups applied)
-- **Current task:** -
-- **Branch:** `uday/U-02-backend-scaffold`
-- **Where I left off:** U-02 merged into collaboration; follow-up fixes (error body, accounts.User, compose/Docker hardening) pushed on the same branch. Everyone who ran the old scaffold must `docker compose down -v` once.
-- **Next step:** U-01 (manual Boomi checks) and S-01 (freeze contracts with Roop + Nikhil), which unblocks U-03.
-- **Blockers:** U-03 waits on S-01; U-01 needs the Boomi UI.
+- **Last updated:** 2026-11-19 (autopilot run by Roop's machine; stopped on request)
+- **Current task:** U-12 (in-progress); U-01 blocked; S-01 blocked
+- **Branch:** `uday/U-12-deploy` (also pushed: `uday/U-01-boomi-env`, `uday/S-01-contracts`)
+- **Where I left off:** U-12 compose (mock-erp + frontend), .dockerignore, .env.example, docs/INSTALL.md, deploy/README.md (tunnel) and deploy/render.yaml written; reviewer findings (security blocker on tunnel defaults + majors) fixed in fe30fdc; backend pytest 23 passed, ruff clean. `docker compose up` on a fresh clone NOT yet run (Docker Desktop engine did not start after an update).
+- **Next step:** start Docker Desktop, `cp .env.example .env && docker compose up --build`, check frontend :5173, backend :8000/api/health, mock-erp :8081/health; tick the first U-12 box, re-run reviewer on fe30fdc, set U-12 review. Also: fill `docs/BOOMI_ENV.md` (U-01) and run the S-01 call with `docs/CONTRACTS_V1_AGENDA.md`.
+- **Blockers:** U-01 needs Uday logged in to Boomi; S-01 needs the 30-min call (unblocks U-03); U-12 hosted part needs a Render account (S4)
 
 ## Recent tracked commits
 
 | Date | Commit | Member | Task | Status | Subject |
 |---|---|---|---|---|---|
+| 2026-11-19 | fe30fdc | uday | U-12 | in-progress | fix(deploy): safe tunnel defaults, Render free-plan migrate, proxy settings |
+| 2026-11-19 | 7c5973a | uday | S-01 | blocked | chore(tasks): S-01 blocked on the v1 freeze call |
+| 2026-11-19 | 0380d2c | uday | U-12 | in-progress | feat(deploy): full local stack, tunnel guide and Render blueprint |
+| 2026-11-19 | 410f634 | uday | S-01 | blocked | docs(contracts): S-01 decision sheet for the v1 freeze call |
 | 2026-11-19 | 5384b03 | uday | U-02 | done | merge: U-02 Backend scaffold (auto-merge) |
+| 2026-11-19 | 77ad3a9 | roop | R-09 | in-progress | merge: R-09 --workflow sub-branch into task branch |
+| 2026-11-19 | a9aafea | roop | R-09 | in-progress | merge: R-09 --lint sub-branch into task branch |
 | 2026-11-19 | a09cbdd | roop | R-09 | in-progress | build(frontend): add ESLint flat config and lint script |
 | 2026-11-19 | 0823f4a | uday | U-01 | blocked | docs(boomi): U-01 Boomi environment checklist, waiting on platform checks |
 | 2026-11-19 | f9813db | roop | R-09 | in-progress | ci: add CI workflow for backend, frontend and python suites |
@@ -103,9 +109,3 @@
 | 2026-11-19 | 96a74fc | roop | R-01 | in-progress | ci(automation): run auto-merge checks on Node 22.22.2 |
 | 2026-11-19 | 89e9f67 | nikhil | N-03 | review | merge: N-03 Mock ERP service (auto-merge) |
 | 2026-11-19 | 9f884ef | nikhil | N-03 | review | chore(tasks): N-03 handoff - N-01/N-02 auto-merged, N-03 ready |
-| 2026-11-19 | dcc2320 | roop | R-01 | in-progress | merge: R-01 --schema-fixes sub-branch into task branch |
-| 2026-11-19 | 8dcf1b8 | uday | U-02 | review | merge: U-02 Backend scaffold (auto-merge) |
-| 2026-11-19 | 4d2b535 | roop | R-01 | in-progress | fix(frontend): align API types and mocks with agent schemas |
-| 2026-11-19 | 63cdd3f | nikhil | N-02 | review | merge: N-02 Synthetic demo dataset (auto-merge) |
-| 2026-11-19 | 659d556 | roop | S-02 | in-progress | ci(checks): auto-discover every top-level tests/ suite |
-| 2026-11-19 | 53a38f3 | uday | U-02 | review | chore(tasks): U-02 verified with docker compose on Postgres 16 |

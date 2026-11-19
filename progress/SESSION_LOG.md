@@ -113,3 +113,12 @@ Template:
 - Next: each member starts `/loop /autopilot <name>`
 - Blockers: none
 - Models used: advisor opus
+
+## 2026-11-19 13:00 - uday - U-12 (autopilot, U-01 + S-01 prep)
+- Branch: uday/U-12-deploy @ fe30fdc (also uday/U-01-boomi-env @ 0823f4a, uday/S-01-contracts @ 7c5973a)
+- Did: U-01 `docs/BOOMI_ENV.md` checklist (blocked: needs Boomi login); S-01 `docs/CONTRACTS_V1_AGENDA.md` decision sheet, 55 items with recommendations (blocked: needs the call); U-12 compose adds mock-erp + frontend, .dockerignore, complete .env.example, docs/INSTALL.md, deploy/README.md (cloudflared tunnel, safe defaults), deploy/render.yaml; settings read RENDER_EXTERNAL_HOSTNAME / CSRF_TRUSTED_ORIGINS / BEHIND_HTTPS_PROXY. Reviewer: CHANGES REQUIRED (tunnel with DEBUG=True + public SECRET_KEY) - fixed in fe30fdc, not re-reviewed yet.
+- Tests: backend pytest 23 passed, ruff clean; `docker compose config -q` OK; `docker compose up` NOT run (Docker engine down)
+- Status now: U-12 in-progress, U-01 blocked, S-01 blocked
+- Next: Docker up -> `docker compose up --build` on fresh clone -> re-review -> U-12 review
+- Blockers: Uday (Boomi login for U-01); all three (S-01 call); Render account for U-12 hosted
+- Models used: advisor opus; implementer sonnet x3, reviewer opus x1. Autopilot stopped on Roop's request.
