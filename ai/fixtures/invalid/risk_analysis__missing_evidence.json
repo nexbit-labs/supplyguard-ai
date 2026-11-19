@@ -23,7 +23,7 @@
   ],
   "facts": [
     "PO-1001 (4000 units ITM-501) is due 2026-12-03, inside the outage window.",
-    "On-hand ITM-501 at DC-PUNE is 1200 units."
+    "On-hand ITM-501 at DC-PUNE is 1100 units (200 reserved)."
   ],
   "estimates": [
     {

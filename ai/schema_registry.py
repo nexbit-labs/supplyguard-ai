@@ -45,6 +45,9 @@ def bundled_schema(name: str) -> dict:
     """Single self-contained schema (only internal #/$defs refs) for tools that cannot
     resolve other files, e.g. Claude structured outputs in the N-09 fallback.
 
+    Best effort: structured-output engines support only a subset of JSON Schema and may
+    ignore or reject keywords used here (if/then/else, allOf conditionals, pattern,
+    minimum/maximum, format). N-09 may need to strip those before sending the schema.
     jsonschema via validator_for() stays the authoritative check after any API call.
     """
     common_defs = load_schema("common")["$defs"]

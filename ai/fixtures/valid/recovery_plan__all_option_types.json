@@ -1,0 +1,180 @@
+{
+  "risk_case_id": "RC-000045",
+  "options": [
+    {
+      "rank": 1,
+      "option_type": "ALTERNATE_SUPPLIER",
+      "proposed_action": {
+        "po_id": "PO-1001",
+        "change": {
+          "supplier_id": "SUP-2001",
+          "qty": 4000
+        }
+      },
+      "action_steps": [
+        "Move 4000 units of PO-1001 to SUP-2001",
+        "Notify SUP-1008 of the change"
+      ],
+      "estimated_lead_time_days": 2,
+      "estimated_cost_delta": {
+        "amount": "33600.00",
+        "currency": "INR"
+      },
+      "trade_offs": [
+        "SUP-2001 unit price 84.00 vs 75.60 today (+8.40/unit)"
+      ],
+      "evidence": [
+        {
+          "source": "ERP",
+          "entity": "SUP-2001",
+          "field": "unit_price",
+          "value": "84.00",
+          "item_id": "ITM-501"
+        },
+        {
+          "source": "ERP",
+          "entity": "SUP-2001",
+          "field": "lead_time_days",
+          "value": 2,
+          "item_id": "ITM-501"
+        },
+        {
+          "source": "ERP",
+          "entity": "PO-1001",
+          "field": "unit_price",
+          "value": "75.60",
+          "item_id": "ITM-501"
+        },
+        {
+          "source": "ERP",
+          "entity": "SUP-2002",
+          "field": "capacity",
+          "value": null,
+          "item_id": "ITM-501"
+        }
+      ],
+      "assumptions": [
+        "SUP-2001 capacity in the ERP record is still available",
+        "SUP-2002 not considered: capacity unknown in ERP"
+      ],
+      "data_gaps": []
+    },
+    {
+      "rank": 2,
+      "option_type": "SPLIT_ORDER",
+      "proposed_action": {
+        "po_id": "PO-1002",
+        "change": {
+          "supplier_id": "SUP-2001",
+          "qty": 1500
+        }
+      },
+      "action_steps": [
+        "Move 1500 of 2500 units of PO-1002 to SUP-2001",
+        "Keep 1000 units with SUP-1008"
+      ],
+      "estimated_lead_time_days": 2,
+      "estimated_cost_delta": {
+        "amount": "12600.00",
+        "currency": "INR"
+      },
+      "trade_offs": [
+        "Two suppliers to follow up instead of one"
+      ],
+      "evidence": [
+        {
+          "source": "ERP",
+          "entity": "SUP-2001",
+          "field": "capacity",
+          "value": 5000,
+          "item_id": "ITM-501"
+        },
+        {
+          "source": "ERP",
+          "entity": "PO-1002",
+          "field": "qty",
+          "value": 2500,
+          "item_id": "ITM-501"
+        }
+      ],
+      "assumptions": [
+        "SUP-1008 delivers the remaining 1000 units after the outage"
+      ],
+      "data_gaps": []
+    },
+    {
+      "rank": 3,
+      "option_type": "INVENTORY_TRANSFER",
+      "proposed_action": {
+        "po_id": "PO-1001",
+        "change": {
+          "item_id": "ITM-501",
+          "from_location_id": "DC-CHENNAI",
+          "to_location_id": "DC-PUNE",
+          "qty": 500
+        }
+      },
+      "action_steps": [
+        "Transfer 500 units of ITM-501 from DC-CHENNAI to DC-PUNE (800 on hand - 100 reserved - 200 safety stock)"
+      ],
+      "estimated_lead_time_days": 1,
+      "estimated_cost_delta": null,
+      "trade_offs": [
+        "DC-CHENNAI drops to its safety stock (200 units)"
+      ],
+      "evidence": [
+        {
+          "source": "ERP",
+          "entity": "ITM-501",
+          "field": "on_hand",
+          "value": 800,
+          "location_id": "DC-CHENNAI"
+        },
+        {
+          "source": "ERP",
+          "entity": "ITM-501",
+          "field": "safety_stock",
+          "value": 200,
+          "location_id": "DC-CHENNAI"
+        }
+      ],
+      "assumptions": [],
+      "data_gaps": [
+        "Inter-DC freight cost is not in the ERP snapshot"
+      ]
+    },
+    {
+      "rank": 4,
+      "option_type": "REVISED_SCHEDULE",
+      "proposed_action": {
+        "po_id": "PO-1001",
+        "change": {
+          "expected_date": "2026-12-05"
+        }
+      },
+      "action_steps": [
+        "Move PO-1001 expected date to 2026-12-05",
+        "Cover the gap from DC-PUNE stock"
+      ],
+      "estimated_lead_time_days": null,
+      "estimated_cost_delta": null,
+      "trade_offs": [
+        "No extra purchase cost, but about 1.5 days of stock-out risk at DC-PUNE"
+      ],
+      "evidence": [
+        {
+          "source": "ERP",
+          "entity": "ITM-501",
+          "field": "on_hand",
+          "value": 1100,
+          "location_id": "DC-PUNE"
+        }
+      ],
+      "assumptions": [],
+      "data_gaps": [
+        "Supplier has not confirmed a restart date"
+      ]
+    }
+  ],
+  "no_viable_option_reason": null
+}

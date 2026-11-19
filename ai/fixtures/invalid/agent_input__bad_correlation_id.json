@@ -33,6 +33,7 @@
         "po_id": "PO-1001",
         "supplier_id": "SUP-1008",
         "status": "OPEN",
+        "expected_date": "2026-12-03",
         "lines": [
           {
             "item_id": "ITM-501",
@@ -49,6 +50,7 @@
         "po_id": "PO-1002",
         "supplier_id": "SUP-1008",
         "status": "OPEN",
+        "expected_date": "2026-12-04",
         "lines": [
           {
             "item_id": "ITM-501",
@@ -66,9 +68,16 @@
       {
         "item_id": "ITM-501",
         "location_id": "DC-PUNE",
-        "on_hand": 1200,
-        "reserved": 20,
-        "safety_stock": 50
+        "on_hand": 1100,
+        "reserved": 200,
+        "safety_stock": 300
+      },
+      {
+        "item_id": "ITM-501",
+        "location_id": "DC-CHENNAI",
+        "on_hand": 800,
+        "reserved": 100,
+        "safety_stock": 200
       }
     ],
     "alternate_suppliers": [
