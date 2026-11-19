@@ -9,7 +9,7 @@ Usage:
     python scripts/progress.py nikhil          # one member: done / in progress / pending / next / handoff
     python scripts/progress.py all --write     # regenerate PROGRESS.md
     python scripts/progress.py --brief         # one line per member (used by the SessionStart hook)
-    python scripts/progress.py roop --ready    # autopilot check: exit 0 + READY line if a task can start,
+    python scripts/progress.py roop --ready    # exit 0 + READY line if a task can start,
                                                # exit 3 + what it is waiting on (task, owner, status) if not
 """
 from __future__ import annotations
@@ -299,7 +299,7 @@ def main() -> int:
     ap.add_argument("--write", action="store_true", help="regenerate PROGRESS.md")
     ap.add_argument("--brief", action="store_true", help="one line per member")
     ap.add_argument("--today", help="override date (YYYY-MM-DD) for testing")
-    ap.add_argument("--ready", action="store_true", help="autopilot check for one member (exit 0 ready, 3 waiting)")
+    ap.add_argument("--ready", action="store_true", help="can this member start a task? (exit 0 ready, 3 waiting)")
     args = ap.parse_args()
 
     today = dt.date.fromisoformat(args.today) if args.today else dt.date.today()

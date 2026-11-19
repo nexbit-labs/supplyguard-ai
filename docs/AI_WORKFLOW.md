@@ -18,8 +18,6 @@ Inside Claude Code: `/model opus` (the advisor). Optional plugins that help: Boo
 ```
 This pulls `collaboration`, prints your progress, reads your Handoff block, picks the right task, plans it, delegates to subagents, implements, tests, reviews, updates your task file, commits and pushes. When you stop for the day: `/handoff`.
 
-**Hands-free:** `/loop /autopilot roop` - leave Claude Code open; it checks every few minutes and starts your next task by itself as soon as the tasks it depends on (often a teammate's) are merged into `collaboration`. While it waits it prints one line, e.g. `Waiting: R-02 needs U-03 (uday, todo)`.
-
 Other commands:
 | Command | What it does |
 |---|---|
@@ -27,7 +25,6 @@ Other commands:
 | `/handoff` | save where you left off (task file + session log + PROGRESS.md), commit, push |
 | `/done U-06` | verify acceptance, mark done, merge into `collaboration`, then continue with your next task |
 | `/sync` | merge the latest `collaboration` into your task branch, resolve conflicts, run tests |
-| `/autopilot nikhil` | one autopilot round: pull, check `progress.py nikhil --ready`, work the ready task or report what it waits on. Use it as `/loop /autopilot nikhil` |
 | `/merge-prs` | verify, fix conflicts and merge every ready PR / task branch of the team into `collaboration` |
 
 Without Claude: `python scripts/progress.py uday` prints the same status.

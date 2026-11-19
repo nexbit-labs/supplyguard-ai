@@ -122,3 +122,12 @@ Template:
 - Next: Docker up -> `docker compose up --build` on fresh clone -> re-review -> U-12 review
 - Blockers: Uday (Boomi login for U-01); all three (S-01 call); Render account for U-12 hosted
 - Models used: advisor opus; implementer sonnet x3, reviewer opus x1. Autopilot stopped on Roop's request.
+
+## 2026-11-19 - roop - SETUP (autopilot removed)
+- Branch: roop/S-02-remove-autopilot (separate worktree)
+- Did: Removed the `/autopilot` command and its docs (CLAUDE.md, AI_WORKFLOW, README) - team decided it costs too many tokens while tasks wait on human steps; Nikhil/Uday autopilot sessions stopped. Kept `progress.py <member> --ready` as a plain status check and "review deps count as satisfied".
+- Tests: progress.py --ready runs (roop READY R-09)
+- Status now: work is started manually with `/resume <member>`
+- Next: S-01 contracts call; U-01 Boomi check by a human
+- Blockers: none
+- Models used: advisor opus
