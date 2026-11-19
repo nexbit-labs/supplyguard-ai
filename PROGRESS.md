@@ -8,7 +8,7 @@
 |---|---|---|---|---|---|---|---|---|
 | Roop | 1 | 0 | 0 | 0 | 11 | 0 | 8% | R-09 |
 | Nikhil | 0 | 0 | 3 | 0 | 11 | 0 | 0% | - |
-| Uday | 0 | 0 | 1 | 0 | 11 | 0 | 0% | U-01 |
+| Uday | 1 | 0 | 0 | 0 | 11 | 0 | 8% | U-01 |
 | Shared | 0 | 1 | 0 | 0 | 4 | 0 | 0% | S-01 |
 
 ## Task board
@@ -22,7 +22,7 @@
 | R-01 | Frontend scaffold + design system | Roop | S0-S1 (19-25 Nov) | done | 3/3 | cfaec62 |
 | S-01 | Freeze contracts v1 | Shared | S0 (19-20 Nov) | in-progress | 0/3 | - |
 | U-01 | Boomi environment and service verification | Uday | S0 (19-20 Nov) | todo | 0/3 | - |
-| U-02 | Backend scaffold | Uday | S0 (19-21 Nov) | review | 3/3 | - |
+| U-02 | Backend scaffold | Uday | S0 (19-21 Nov) | done | 3/3 | 8dcf1b8 |
 | U-03 | Core data model + seed loader | Uday | S0 (21-23 Nov) | todo | 0/4 | - |
 | N-04 | Deterministic impact + risk scoring engine | Nikhil | S1 (25-30 Nov) | todo | 0/4 | - |
 | R-02 | Read APIs for the UI (Django `apps/portal`) | Roop | S1 (26-30 Nov) | todo | 0/3 | - |
@@ -78,19 +78,25 @@
 - **Blockers:** acceptance "Runs via docker compose up mock-erp" needs Uday's docker-compose.yml; S-01 ratification for N-01/N-02/N-03 contract additions.
 
 ### Uday
-- **Last updated:** 2026-11-19 (U-02 scaffold built, in review)
-- **Current task:** U-02
+- **Last updated:** 2026-11-19 (U-02 done and merged, review follow-ups applied)
+- **Current task:** -
 - **Branch:** `uday/U-02-backend-scaffold`
-- **Where I left off:** Backend scaffold done and committed; pytest + ruff green. Docker compose not run yet (Docker Desktop was off).
-- **Next step:** Run `docker compose up --build backend db`, tick the box, merge U-02. Then U-03 (needs S-01 contracts frozen) and U-01 (manual Boomi checks).
-- **Blockers:** none
+- **Where I left off:** U-02 merged into collaboration; follow-up fixes (error body, accounts.User, compose/Docker hardening) pushed on the same branch. Everyone who ran the old scaffold must `docker compose down -v` once.
+- **Next step:** U-01 (manual Boomi checks) and S-01 (freeze contracts with Roop + Nikhil), which unblocks U-03.
+- **Blockers:** U-03 waits on S-01; U-01 needs the Boomi UI.
 
 ## Recent tracked commits
 
 | Date | Commit | Member | Task | Status | Subject |
 |---|---|---|---|---|---|
+| 2026-11-19 | 5384b03 | uday | U-02 | done | merge: U-02 Backend scaffold (auto-merge) |
+| 2026-11-19 | a09cbdd | roop | R-09 | in-progress | build(frontend): add ESLint flat config and lint script |
+| 2026-11-19 | 0823f4a | uday | U-01 | blocked | docs(boomi): U-01 Boomi environment checklist, waiting on platform checks |
+| 2026-11-19 | f9813db | roop | R-09 | in-progress | ci: add CI workflow for backend, frontend and python suites |
+| 2026-11-19 | 56f0c5f | uday | U-02 | done | fix(backend): isolate settings tests from .env, non-root image can write /app |
 | 2026-11-19 | 824203d | roop | S-02 | in-progress | feat(workflow): autopilot - start each task as soon as its dependencies merge |
 | 2026-11-19 | 4b45577 | roop | R-09 | in-progress | chore(tasks): start R-09 CI pipeline |
+| 2026-11-19 | 4005eb2 | uday | U-02 | done | fix(backend): apply U-02 review notes (error body, accounts.User, compose hardening) |
 | 2026-11-19 | a464f4a | roop | R-01 | done | merge: R-01 Frontend scaffold + design system (auto-merge) |
 | 2026-11-19 | ffdc766 | roop | R-01 | done | chore(tasks): handoff R-01 - done |
 | 2026-11-19 | cfaec62 | roop | R-01 | done | chore(tasks): R-01 done - frontend scaffold, auth, mocks, UI kit |
@@ -103,9 +109,3 @@
 | 2026-11-19 | 63cdd3f | nikhil | N-02 | review | merge: N-02 Synthetic demo dataset (auto-merge) |
 | 2026-11-19 | 659d556 | roop | S-02 | in-progress | ci(checks): auto-discover every top-level tests/ suite |
 | 2026-11-19 | 53a38f3 | uday | U-02 | review | chore(tasks): U-02 verified with docker compose on Postgres 16 |
-| 2026-11-19 | 8567b46 | uday | U-02 | review | feat(backend): Django 5 + DRF scaffold with app shells, health, compose |
-| 2026-11-19 | 2aed25a | nikhil | N-03 | review | chore(tasks): handoff N-03 - in review, compose pending on Uday |
-| 2026-11-19 | 462be3e | nikhil | N-03 | review | feat(mock-erp): FastAPI mock ERP with idempotent PATCH and chaos |
-| 2026-11-19 | 64a246f | roop | S-02 | in-progress | ci(automation): auto-merge ready task branches and auto-sync everyone |
-| 2026-11-19 | c0cf42b | roop | R-01 | in-progress | merge: R-01 --review-fixes sub-branch into task branch |
-| 2026-11-19 | cd167d2 | roop | R-01 | in-progress | fix(frontend): address R-01 review findings |

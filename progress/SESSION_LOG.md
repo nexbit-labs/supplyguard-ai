@@ -96,6 +96,15 @@ Template:
 - Blockers: Uday U-02/U-03/U-04; backend asks in ROOP.md Handoff (refresh lifetime/rotation, /me shape)
 - Models used: advisor opus; implementer sonnet x5, reviewer opus x2, 2 visible sonnet sessions
 
+## 2026-11-19 - uday - U-02
+- Branch: uday/U-02-backend-scaffold
+- Did: Backend scaffold (Django 5 + DRF + JWT + OpenAPI, 8 app shells, /api/health, compose with Postgres 16). Review follow-ups: contract error body handler (CONTRACTS s1), custom `accounts.User` + 0001 migration, SECRET_KEY guard, compose env_file + dev runserver, non-root image.
+- Tests: backend 20 passed (also with a .env copied from .env.example); ruff clean; docker compose on Postgres 16 verified.
+- Status now: done
+- Next: U-01 (manual Boomi checks), S-01 (freeze contracts) which unblocks U-03
+- Blockers: **Everyone who ran the first U-02 scaffold must run `docker compose down -v` once** (AUTH_USER_MODEL changed to accounts.User; old Postgres volume gives InconsistentMigrationHistory). Roop: API errors now use the CONTRACTS s1 body. Open for S-01: no 500/429 code in CONTRACTS (429/405 map to VALIDATION_ERROR for now).
+- Models used: advisor sonnet; reviewer opus x2
+
 ## 2026-11-19 - roop - SETUP (autopilot)
 - Branch: roop/S-02-autopilot (separate worktree)
 - Did: `progress.py <member> --ready` (exit 0 + READY line, or exit 3 + what the next tasks wait on); new `/autopilot <member>` command for `/loop` hands-free mode (pull, check, work ready task, mark human-only steps `blocked: needs <member>`, wait 5-30 min); dependencies in `review` now count as satisfied (already merged). Docs updated.

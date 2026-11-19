@@ -23,8 +23,9 @@ for _env_file in (BASE_DIR.parent / ".env", BASE_DIR / ".env"):
 
 DEBUG = env("DEBUG")
 
-# A real secret is mandatory unless DEBUG is on (local dev only).
-SECRET_KEY = env("SECRET_KEY", default="dev-insecure-secret-key" if DEBUG else None)
+# A real secret is mandatory unless DEBUG is on (local dev only). An empty value counts as
+# unset, so `SECRET_KEY=` in compose/.env can never silently become a known key outside DEBUG.
+SECRET_KEY = env("SECRET_KEY", default="") or ("dev-insecure-secret-key" if DEBUG else "")
 if not SECRET_KEY:
     raise ImproperlyConfigured("SECRET_KEY must be set when DEBUG is off.")
 
@@ -98,6 +99,10 @@ DATABASES = {
 }
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# Custom user from day one: swapping AUTH_USER_MODEL after the first migrate is painful.
+# U-03 adds the tenant FK and role fields to this model.
+AUTH_USER_MODEL = "accounts.User"
+
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
@@ -126,6 +131,8 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 25,
+    # docs/CONTRACTS.md section 1: one error body shape for every API error.
+    "EXCEPTION_HANDLER": "apps.core.exceptions.contract_exception_handler",
 }
 
 SIMPLE_JWT = {
