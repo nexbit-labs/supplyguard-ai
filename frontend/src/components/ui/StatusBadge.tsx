@@ -12,6 +12,7 @@ export type RiskCaseStatus =
   | 'REJECTED'
   | 'EXECUTION_FAILED';
 
+// eslint-disable-next-line react-refresh/only-export-components -- metadata table shared with the badge; pure constant
 export const STATUS_META: Record<RiskCaseStatus, { label: string; tone: BadgeTone }> = {
   RECEIVED: { label: 'Received', tone: 'neutral' },
   ANALYZING: { label: 'Analyzing', tone: 'info' },

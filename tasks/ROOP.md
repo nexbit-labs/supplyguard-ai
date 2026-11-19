@@ -9,12 +9,12 @@
 
 ## Handoff
 <!-- Overwrite this block at the end of EVERY session (run /handoff). Newest state only; history goes to progress/SESSION_LOG.md -->
-- **Last updated:** 2026-11-19 (R-01 done)
-- **Current task:** - (R-01 done; auto-merge Action merges `roop/R-01-frontend-scaffold` into `collaboration`)
-- **Branch:** `roop/R-01-frontend-scaffold` (deleted by auto-merge once merged)
-- **Where I left off:** `frontend/` complete: shell + 9 placeholder screens, login/JWT refresh, MSW mocks (`src/mocks/`), typed API (`src/api/`), UI kit (`src/components/ui/`). 76 tests green.
-- **Next step:** Nothing ready yet. R-09 (CI) starts when Uday's U-02 lands; R-02 after U-03/U-04; R-07 after N-11. Meanwhile can draft R-03 screen layouts against MSW mocks.
-- **Blockers:** Waiting on Uday U-02/U-03/U-04 (backend scaffold, models, tenancy). Ask Uday: keep simplejwt refresh lifetime short (<= 1 day) and ROTATE_REFRESH_TOKENS off; `/me` shape `{user:{id,username,full_name,email}, tenant:{id,name}, role}` is provisional in `frontend/src/api/types.ts`; deploy build must not set VITE_API_MOCK=true.
+- **Last updated:** 2026-11-19 (R-09 in review)
+- **Current task:** R-09 CI pipeline - `review` (auto-merge merges it into collaboration)
+- **Branch:** `roop/R-09-ci`
+- **Where I left off:** `.github/workflows/ci.yml` + ESLint + lint/ruff in `scripts/run_checks.py` done and reviewed. First GitHub run not observed (repo private, `gh` not logged in).
+- **Next step:** Check Actions -> CI is green on `roop/R-09-ci`, then run CI manually on `collaboration`; agree with Nikhil + Uday to change R-09 acceptance to "`ci-ok` required on `main` only", set that protection, mark R-09 done.
+- **Blockers:** Team decision on required checks (SHARED). Uday: pin ruff in `backend/requirements-dev.txt`; run `ruff format backend` so CI can add format-check; keep simplejwt refresh lifetime short + rotation off; `/me` shape provisional. Team: drop `[skip ci]` from bot commits (`scripts/gitflow.py`, `progress.yml`) or dispatch CI before milestone PRs.
 
 ---
 
@@ -114,7 +114,7 @@
 - **Notes:** -
 
 ### R-09: CI pipeline
-- **Status:** todo
+- **Status:** review
 - **Sprint:** S1 (24-26 Nov) | **Est:** 0.5d | **Depends:** R-01, U-02
 - **Branch:** `roop/R-09-ci`
 - **Model hint:** haiku / low
@@ -122,7 +122,7 @@
 - **Acceptance:**
   - [ ] CI green on `collaboration`; added as required check on both protected branches
 - **Done in:** -
-- **Notes:** -
+- **Notes:** Built on nested branches `--lint`, `--workflow`, `--gate` (subagents). `ci.yml` jobs: backend (ruff + pytest on Postgres 16), frontend (lint/typecheck/test/build, Node from `.nvmrc`), python-suites matrix (ai, data, mock-erp), `ci-ok` aggregate. Triggers: task-branch pushes, PRs + pushes to collaboration/main, nightly 02:00 UTC, manual. ESLint 9 flat config added (`npm run lint`, 0 warnings). Auto-merge gate (`scripts/run_checks.py`) now also runs frontend lint + backend ruff. Opus review x2: CHANGES REQUIRED -> APPROVE WITH NITS (nits fixed). Local `run_checks.py`: all 5 suites PASS. Why `review` not `done`: acceptance "required check on both protected branches" conflicts with bots pushing directly to collaboration (GITHUB_TOKEN cannot bypass) -> proposed SHARED change: require `ci-ok` on `main` only; prove collaboration green via nightly/manual run. Deferred: bot `[skip ci]` in `scripts/gitflow.py` + `progress.yml` blocks milestone PR checks (team); ruff unpinned in `backend/requirements-dev.txt` (Uday).
 
 ### R-10: UX polish + demo mode
 - **Status:** todo
