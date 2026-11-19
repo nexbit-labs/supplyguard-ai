@@ -6,13 +6,14 @@ so the expensive advisor model plans and reviews while cheaper subagents
 (implementer / boomi-builder on Sonnet) write the code in their own nested worktree branches.
 
 Allowed for the advisor: task files, docs, progress files, CLAUDE.md, .claude/ config,
-markdown anywhere. Subagent calls (hook input has `agent_id`) are never blocked.
+markdown anywhere. Subagent calls (hook input has `agent_id`) and nested sessions (on a `--sub` branch) are never blocked.
 Escape hatch for a one-off: set SG_ALLOW_ADVISOR_EDITS=1 before starting Claude Code.
 """
 from __future__ import annotations
 
 import json
 import os
+import subprocess
 import sys
 from pathlib import PurePosixPath
 
@@ -29,10 +30,17 @@ def main() -> int:
         return 0
     if data.get("agent_id"):  # a subagent - always allowed
         return 0
+    cwd = data.get("cwd") or os.getcwd()
+    try:  # a nested session works on a `<task-branch>--<sub>` branch - allowed
+        branch = subprocess.run(["git", "-C", cwd, "branch", "--show-current"], capture_output=True,
+                                text=True, timeout=5).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        branch = ""
+    if "--" in branch:
+        return 0
     path = (data.get("tool_input") or {}).get("file_path") or (data.get("tool_input") or {}).get("notebook_path") or ""
     if not path:
         return 0
-    cwd = data.get("cwd") or os.getcwd()
     norm = path.replace("\\", "/")
     root = cwd.replace("\\", "/").rstrip("/") + "/"
     rel = norm[len(root):] if norm.lower().startswith(root.lower()) else norm
@@ -41,9 +49,10 @@ def main() -> int:
         return 0
     print(
         f"Advisor rule (CLAUDE.md section 4): the main Opus session does not edit code ({rel}). "
-        "Delegate it: Agent tool with subagent_type `implementer` (or `boomi-builder`), which runs on Sonnet "
-        "in its own nested worktree branch `<task-branch>--<sub>`. Even a one-line fix goes to "
-        "`implementer` (cheap). Only if delegation is impossible, ask the user to restart with SG_ALLOW_ADVISOR_EDITS=1.",
+        "Start a nested session for this piece (Sonnet/medium, own worktree, branch `<task-branch>--<sub>`, "
+        "see CLAUDE.md section 4), or in a terminal without the Desktop app use the `implementer` subagent. "
+        "Even a one-line fix goes to a nested session/subagent. Only if that is impossible, ask the user to restart "
+        "with SG_ALLOW_ADVISOR_EDITS=1.",
         file=sys.stderr,
     )
     return 2

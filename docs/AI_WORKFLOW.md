@@ -66,18 +66,20 @@ Token hygiene:
 - Point subagents at files/sections instead of pasting content.
 - One task per session where possible; `/handoff` and start a fresh session for the next task.
 
-## 5. Nested branches (automatic)
-Every `implementer` / `boomi-builder` call runs in its own git worktree (`isolation: worktree` in the agent file), cut from the advisor's task branch (`worktree.baseRef: head` in `.claude/settings.json`). Example for R-02:
+## 5. Nested sessions (how every task is built)
+The advisor (Opus, medium) never writes code. For each code piece of a task it starts a **nested session**: a separate Claude Code session, visible in the Claude Desktop sidebar under the advisor, with its own model, effort, worktree and branch.
 ```
-roop/R-02-read-apis                      <- advisor (Opus, medium): plan, merge, review gate
- ├── roop/R-02-read-apis--serializers    <- implementer (Sonnet, medium), worktree 1  } launched in
- ├── roop/R-02-read-apis--views          <- implementer (Sonnet, medium), worktree 2  } one message,
- └── roop/R-02-read-apis--tests          <- implementer (Sonnet, medium), worktree 3  } in parallel
-investigator (Haiku) for lookups, test-runner (Haiku) after merging, reviewer-lite (Sonnet) before done
+advisor session  roop/R-02-read-apis          Opus / medium  - plan table, briefs, merge, decide
+ ├─ nested session  ...--serializers            Sonnet / medium  } started in one message,
+ ├─ nested session  ...--views                  Sonnet / medium  } run at the same time,
+ └─ nested session  ...--tests                  Sonnet / medium  } each pushes its branch
+subagents in the advisor: investigator (Haiku), test-runner (Haiku), reviewer-lite (Sonnet)
+advisor merges the 3 branches -> test-runner -> reviewer-lite -> /done -> auto-merge to collaboration
 ```
-- Nested branches never touch the same files; each is pushed so the team can see it.
-- The advisor merges them into the task branch, tests, reviews, then `/done`. The auto-merge Action ignores `--` branches.
-- The advisor cannot edit code itself: `scripts/hooks/advisor_guard.py` (PreToolUse hook) blocks it and tells it to delegate.
+- Model/effort per piece and the brief template: CLAUDE.md section 4.
+- Pieces never touch the same files. Fixes go back to the nested session that built the piece.
+- Nested sessions are not archived; the member can reopen any of them from the sidebar.
+- Terminal-only (`claude` CLI, no Desktop app): the same pieces run as `implementer` / `boomi-builder` subagents with `isolation: worktree` on the same `--sub` branches.
 
 ## 6. What "done" means for Claude
 A task is `done` only when: acceptance boxes ticked with evidence, tests pass (output seen, not assumed), reviewer found no blocking issue, task file + PROGRESS.md updated, merged into `collaboration` (Claude merges it itself). Then Claude moves straight on to the next ready task. If any of this is missing, status is `review` or `in-progress` - never claim `done`.

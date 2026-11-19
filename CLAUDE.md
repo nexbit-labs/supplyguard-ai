@@ -30,31 +30,52 @@ There is no team lead; shared tasks have a named driver (`tasks/SHARED.md`).
 
 Slash commands in `.claude/commands/`: `/resume <member>`, `/status [member|all]`, `/handoff`, `/done <task-id>`, `/sync`, `/merge-prs`.
 
-## 4. Advisor + nested subagents (how to do the work) - ENFORCED
-The main session is the **advisor**: **Opus 5.5 at medium effort** (project default in `.claude/settings.json`). It is the most expensive model, so it only thinks: reads the task, plans, picks the agent + model for each piece, merges, decides. **It does not write code, read many files, or run test suites itself.**
+## 4. Advisor + nested sessions (how every task is done) - ENFORCED
+The session the member opens is the **advisor**: **Opus 5.5, medium effort** (high only for design/security decisions). It is the most expensive model, so it only thinks: explains the task, plans, starts nested sessions, merges their branches, decides. **It does not write code itself** (a hook blocks it).
 
-| Subagent | Model / effort | Use for | Nested branch? |
-|---|---|---|---|
-| `investigator` | haiku / low | find files, read docs/specs/logs, answer "where/what is X" - instead of the advisor reading files | no (read-only) |
-| `implementer` | sonnet / medium | code + tests for one subtask (1-2 files, one module, one screen) | **yes** - own worktree, branch `<task-branch>--<sub>` |
-| `boomi-builder` | sonnet / medium | Boomi process/profile/API/Flow/agent specs + exports | **yes** - own worktree, branch `<task-branch>--<sub>` |
-| `test-runner` | haiku / low | run suites / lint / build, report failures tersely | no |
-| `reviewer-lite` | sonnet / medium | **default** review before `review`/`done` | no |
-| `reviewer` | opus / high | only auth/tenancy, approvals, ERP writes, AI validation, state machine, security, CONTRACTS changes, or when reviewer-lite says ESCALATE | no |
-| `docs-writer` | haiku / low | task-file / Handoff / session-log updates, READMEs | no |
+**Every task is built with nested sessions.** A nested session is a separate Claude Code session the advisor starts for one piece of the task. In the Claude Desktop app it appears in the sidebar under the advisor, so the member can open, watch and steer it. Each one runs on the model and effort that piece needs, in its own worktree and branch. Independent pieces run **at the same time**, so the task finishes faster and the expensive model is used only for thinking.
 
-**Hard rules**
-1. **Plan table first.** Before any work, the advisor writes into the task's `Notes:` line and shows the member a table: `subtask | agent | model/effort | nested branch` (e.g. `serializers | implementer | sonnet/medium | roop/R-02-read-apis--serializers`).
-2. **Every code subtask runs in a nested branch.** `implementer` / `boomi-builder` run with `isolation: worktree` (set in their definitions; worktrees are cut from the advisor's current HEAD because `worktree.baseRef` is `head`). Pass each one its exact nested branch name; it renames its branch, commits with trailers and pushes it. Independent subtasks are launched **in parallel in one message**.
-3. **The advisor merges** each nested branch into the task branch (`git merge --no-ff origin/<task-branch>--<sub>`), then `test-runner`, then `reviewer-lite` (or `reviewer` for the sensitive areas above).
-4. **Enforced by a hook:** `scripts/hooks/advisor_guard.py` blocks the main session from editing files under `backend/ frontend/ mock-erp/ ai/ data/ boomi/ tests/ scripts/ deploy/` (markdown, task files and docs are allowed). Subagents are not blocked. A one-off override is `SG_ALLOW_ADVISOR_EDITS=1` when starting Claude Code - ask the user first.
-5. **Escalate, don't default up.** Use a bigger model only when the smaller one failed twice on the same subtask, or the task's Model hint says opus for that piece (contracts, data model, security, agent prompt design). Never run bulk implementation on Opus.
-6. **Keep the advisor's context small:** send `investigator` instead of reading more than 2 files; when the advisor context passes ~150k tokens, `/handoff` and continue in a fresh session.
+**How the advisor runs a task**
+1. **Plan table first.** Write it into the task's `Notes:` line and show it to the member: `piece | runs as | model / effort | branch`. Example for R-02:
+   | piece | runs as | model / effort | branch |
+   |---|---|---|---|
+   | serializers | nested session | sonnet / medium | `roop/R-02-read-apis--serializers` |
+   | views + urls | nested session | sonnet / medium | `roop/R-02-read-apis--views` |
+   | tenant-scope tests | nested session | sonnet / medium | `roop/R-02-read-apis--tests` |
+   | find U-04 mixin + fixtures | subagent `investigator` | haiku / low | - |
+   | run all suites | subagent `test-runner` | haiku / low | - |
+   | review | subagent `reviewer-lite` | sonnet / medium | - |
+2. **Push the task branch**, then **start one nested session per code piece, all in one message** (Desktop: `start_session` with `initiation: "user_asked"`, `context: "fresh"`, `use_worktree: true`, `source_branch: <task branch>`, `model`, `effort`, `wake_when_done: true`). Brief template (the brief is all the nested session knows):
+   > SupplyGuard AI, task `<ID>` for `<member>`, piece `<sub>`. First run `git checkout -b <task-branch>--<sub>`. Build: <exact files, CONTRACTS section, acceptance items for this piece>. Stay inside <folders>; do not touch the other pieces' files. Write tests and run them. Commit with trailers (`Task: <ID>`, `Status: in-progress`, `Member: <member>`) and `git push -u origin <task-branch>--<sub>`. Report: branch, last commit, test result, anything left.
+3. **Model / effort per piece:**
+   | Piece | Model / effort |
+   |---|---|
+   | screens, read APIs, serializers, seed scripts, Boomi build specs, deploy config, ordinary tests | sonnet / medium |
+   | data model, auth/tenancy, approvals, ERP writes, state machine, AI agent prompts + guardrails, CONTRACTS | opus / medium (high only if the medium attempt failed) |
+   | docs, task-file updates, simple renames, formatting | haiku / low |
+   Escalate only after a smaller model failed twice on the same piece. Never run bulk implementation on Opus.
+4. **While they run** the advisor waits for their notes (no polling). When each finishes: read its report, `git fetch`, `git merge --no-ff origin/<task-branch>--<sub>` into the task branch.
+5. **Verify with cheap subagents:** `test-runner` (haiku/low), then `reviewer-lite` (sonnet/medium) - or `reviewer` (opus/high) for auth/tenancy, approvals, ERP writes, AI validation, state machine, security, CONTRACTS. Fixes go back to the nested session that built the piece (message it), not to the advisor.
+6. **Then `/done`.** Never archive nested sessions; the member may want to reopen them. Deleting merged `--sub` branches only on request.
+
+**Subagents vs nested sessions:** subagents (`.claude/agents/`) are in-chat helpers whose output comes back into the advisor's context - use them for short read-only jobs (lookups, test runs, reviews, doc updates). Anything that writes code is a nested session.
+
+| Subagent | Model / effort | Use for |
+|---|---|---|
+| `investigator` | haiku / low | find files, read docs/specs/logs instead of the advisor reading them |
+| `test-runner` | haiku / low | run suites / lint / build, report failures tersely |
+| `reviewer-lite` | sonnet / medium | default review before `review`/`done` |
+| `reviewer` | opus / high | sensitive areas only (see step 5) or when reviewer-lite says ESCALATE |
+| `docs-writer` | haiku / low | task-file / Handoff / session-log updates |
+| `implementer`, `boomi-builder` | sonnet / medium | **CLI fallback only** - when nested sessions are not available (plain `claude` in a terminal), the same pieces run as these subagents with `isolation: worktree` on the same `--sub` branches |
+
+**Enforced:** `scripts/hooks/advisor_guard.py` blocks the advisor from editing files under `backend/ frontend/ mock-erp/ ai/ data/ boomi/ tests/ scripts/ deploy/`. Nested sessions are allowed because they work on a `--sub` branch; subagents are allowed too. One-off override: start Claude Code with `SG_ALLOW_ADVISOR_EDITS=1` (ask the user first).
+**Keep the advisor small:** send `investigator` instead of reading more than 2 files; past ~150k tokens of context, `/handoff` and continue in a fresh advisor session.
 
 Each task's "Model hint" says where the weight is. Full guide: `docs/AI_WORKFLOW.md`.
 
 ## 5. Git rules
-- Branches: `main` (milestones only, tagged m1..m6, v1.0) <- `collaboration` (integration, always runnable) <- `<member>/<TASK-ID>-<slug>` (one per task) <- optional `<member>/<TASK-ID>-<slug>--<sub>` for parallel subagent work, merged back into the task branch.
+- Branches: `main` (milestones only, tagged m1..m6, v1.0) <- `collaboration` (integration, always runnable) <- `<member>/<TASK-ID>-<slug>` (one per task) <- `<member>/<TASK-ID>-<slug>--<sub>` one per nested session (section 4), merged back into the task branch by the advisor.
 - Never commit directly to `main` or `collaboration` - work lands through a PR from a task branch.
 - **Auto-merge (GitHub Actions, no human needed):**
   - `.github/workflows/auto-merge.yml` runs on every push to a task branch. If that task is `review` or `done` in its task file, the merge into `collaboration` is clean (conflicts in `PROGRESS.md` / `progress/SESSION_LOG.md` are resolved automatically) and `scripts/run_checks.py` passes, it merges and pushes `collaboration`. `done` branches (and their `--sub` branches) are then deleted.

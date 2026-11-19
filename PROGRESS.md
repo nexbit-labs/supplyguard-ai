@@ -89,6 +89,7 @@
 
 | Date | Commit | Member | Task | Status | Subject |
 |---|---|---|---|---|---|
+| 2026-11-19 | 2b5d41a | roop | R-03 | in-progress | chore(tasks): start R-03 overview + supplier screens |
 | 2026-11-19 | 7152665 | roop | R-09 | review | merge: R-09 CI pipeline (auto-merge) |
 | 2026-11-19 | 029f90b | roop | S-02 | in-progress | feat(workflow): enforce model routing and nested branches per subtask |
 | 2026-11-19 | ba05765 | roop | R-09 | review | chore(tasks): handoff R-09 - in review |
@@ -108,4 +109,3 @@
 | 2026-11-19 | 410f634 | uday | S-01 | blocked | docs(contracts): S-01 decision sheet for the v1 freeze call |
 | 2026-11-19 | 5384b03 | uday | U-02 | done | merge: U-02 Backend scaffold (auto-merge) |
 | 2026-11-19 | 77ad3a9 | roop | R-09 | in-progress | merge: R-09 --workflow sub-branch into task branch |
-| 2026-11-19 | a9aafea | roop | R-09 | in-progress | merge: R-09 --lint sub-branch into task branch |

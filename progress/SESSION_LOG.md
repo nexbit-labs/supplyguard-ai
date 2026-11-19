@@ -149,3 +149,12 @@ Template:
 - Next: members restart Claude Code to pick up the settings
 - Blockers: none
 - Models used: advisor opus; claude-code-guide (docs check)
+
+## 2026-11-19 - roop - SETUP (nested sessions)
+- Branch: roop/S-02-nested-sessions (separate worktree)
+- Did: Clarified the work model: every task's code pieces run as nested Claude Code sessions (visible in the Desktop sidebar, own model/effort/worktree, branch `<task-branch>--<sub>`, started in parallel), not in-chat subagents. Advisor = Opus medium: plan table, briefs, merge, review gate. Subagents only for short read-only jobs (investigator, test-runner, reviewer-lite/reviewer, docs-writer); implementer/boomi-builder are the CLI fallback. Guard hook now lets nested sessions (on `--sub` branches) edit code. CLAUDE.md section 4, AI_WORKFLOW section 5, /resume and /done updated.
+- Tests: guard: advisor on task branch blocked (2), nested session on --sub branch allowed, subagent allowed, docs allowed
+- Status now: live for new sessions on collaboration
+- Next: members restart Claude Code and run /resume <name>
+- Blockers: none
+- Models used: advisor opus
