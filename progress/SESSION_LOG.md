@@ -131,3 +131,12 @@ Template:
 - Next: S-01 contracts call; U-01 Boomi check by a human
 - Blockers: none
 - Models used: advisor opus
+
+## 2026-11-19 - roop - SETUP (model routing enforced)
+- Branch: roop/S-02-model-routing (separate worktree)
+- Did: Advisor = Opus at medium effort (project default `model: opus`, `effortLevel: medium`); PreToolUse hook `scripts/hooks/advisor_guard.py` blocks the main session from editing code so it must delegate; `implementer`/`boomi-builder` run with `isolation: worktree` in nested branches `<task-branch>--<sub>` cut from HEAD (`worktree.baseRef: head` - before this, subagent worktrees were cut from the default branch); new `reviewer-lite` (Sonnet) is the default review, Opus `reviewer` only for sensitive areas; commands get explicit effort (handoff/status haiku low, sync sonnet low, resume/done/merge-prs opus medium); mandatory plan table.
+- Tests: guard hook: main-session code edit blocked (exit 2), subagent allowed, task/docs allowed, Windows paths handled; settings.json valid
+- Status now: live for new sessions on collaboration
+- Next: members restart Claude Code to pick up the settings
+- Blockers: none
+- Models used: advisor opus; claude-code-guide (docs check)

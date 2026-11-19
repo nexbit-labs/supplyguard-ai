@@ -17,6 +17,18 @@
           }
         ]
       }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python scripts/hooks/advisor_guard.py",
+            "timeout": 10
+          }
+        ]
+      }
     ]
   },
   "permissions": {
@@ -35,5 +47,10 @@
       "Read(./.env)",
       "Read(./**/.env)"
     ]
+  },
+  "model": "opus",
+  "effortLevel": "medium",
+  "worktree": {
+    "baseRef": "head"
   }
 }

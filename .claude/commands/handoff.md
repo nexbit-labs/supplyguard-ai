@@ -1,7 +1,8 @@
 ---
 description: Save exactly where you left off - task file, session log, PROGRESS.md - then commit and push
 argument-hint: [optional note]
-model: sonnet
+model: haiku
+effort: low
 ---
 End-of-session handoff. Extra note from the user: $ARGUMENTS
 

@@ -33,7 +33,7 @@ Automatic (no command needed): when Claude Code starts it pulls your branch and 
 
 ## 3. Advisor pattern
 ```
-                 ┌──────────────── ADVISOR (main session, Opus 5.5, high effort) ────────────────┐
+                 ┌──────────────── ADVISOR (main session, Opus 5.5, medium effort) ────────────────┐
                  │ reads task + CONTRACTS, splits into subtasks, picks agents, reviews, commits │
                  └───────┬──────────────┬──────────────┬──────────────┬──────────────┬──────────┘
                          │              │              │              │              │
@@ -53,7 +53,9 @@ Automatic (no command needed): when Claude Code starts it pulls your branch and 
 | Work type | Model | Effort | Why |
 |---|---|---|---|
 | Architecture, contracts, data model, state machine, security/tenant logic, agent prompt design | Opus 5.5 | high | mistakes here are expensive and spread to other streams |
-| Final review before `done`, debugging something that failed twice | Opus 5.5 | high | judgment |
+| Final review of auth/tenancy, approvals, ERP writes, AI validation, security, CONTRACTS (`reviewer`); debugging something that failed twice | Opus 5.5 | high | judgment |
+| Ordinary review before `done` (`reviewer-lite`) | Sonnet 5.5 | medium | good enough for screens, read APIs, data, docs |
+| The advisor itself (main session) | Opus 5.5 | medium | plans and decides; never writes code |
 | Feature code with clear spec (views, serializers, React screens, Boomi processes, tests) | Sonnet 5.5 | medium | best speed/quality for implementation |
 | Searching code, reading docs, running tests, formatting, task-file/progress updates, changelogs | Haiku 5.5 | low | cheap and fast |
 
@@ -64,11 +66,18 @@ Token hygiene:
 - Point subagents at files/sections instead of pasting content.
 - One task per session where possible; `/handoff` and start a fresh session for the next task.
 
-## 5. Nested sessions for parallel work
-For a big task (e.g. R-04 + R-05 screens, or N-05 + N-06 agents) the advisor can start separate Claude Code sessions / worktrees per subtask. Rules:
-- Each sub-session works on its own sub-branch `<member>/<TASK-ID>-<slug>--<sub>` cut from the task branch.
-- Sub-sessions never touch the same files.
-- The advisor merges sub-branches into the task branch, runs tests, then reviewer, then PR to `collaboration`.
+## 5. Nested branches (automatic)
+Every `implementer` / `boomi-builder` call runs in its own git worktree (`isolation: worktree` in the agent file), cut from the advisor's task branch (`worktree.baseRef: head` in `.claude/settings.json`). Example for R-02:
+```
+roop/R-02-read-apis                      <- advisor (Opus, medium): plan, merge, review gate
+ ├── roop/R-02-read-apis--serializers    <- implementer (Sonnet, medium), worktree 1  } launched in
+ ├── roop/R-02-read-apis--views          <- implementer (Sonnet, medium), worktree 2  } one message,
+ └── roop/R-02-read-apis--tests          <- implementer (Sonnet, medium), worktree 3  } in parallel
+investigator (Haiku) for lookups, test-runner (Haiku) after merging, reviewer-lite (Sonnet) before done
+```
+- Nested branches never touch the same files; each is pushed so the team can see it.
+- The advisor merges them into the task branch, tests, reviews, then `/done`. The auto-merge Action ignores `--` branches.
+- The advisor cannot edit code itself: `scripts/hooks/advisor_guard.py` (PreToolUse hook) blocks it and tells it to delegate.
 
 ## 6. What "done" means for Claude
 A task is `done` only when: acceptance boxes ticked with evidence, tests pass (output seen, not assumed), reviewer found no blocking issue, task file + PROGRESS.md updated, merged into `collaboration` (Claude merges it itself). Then Claude moves straight on to the next ready task. If any of this is missing, status is `review` or `in-progress` - never claim `done`.

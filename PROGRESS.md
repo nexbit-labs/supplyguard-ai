@@ -89,6 +89,8 @@
 
 | Date | Commit | Member | Task | Status | Subject |
 |---|---|---|---|---|---|
+| 2026-11-19 | ba05765 | roop | R-09 | review | chore(tasks): handoff R-09 - in review |
+| 2026-11-19 | 0d95fec | roop | R-09 | in-progress | ci: address R-09 re-review nits |
 | 2026-11-19 | fba72b3 | nikhil | N-01 | review | merge: N-01 Agent I/O JSON schemas + fixtures (auto-merge) |
 | 2026-11-19 | 7665fdc | roop | R-09 | in-progress | merge: R-09 --gate sub-branch into task branch |
 | 2026-11-19 | fa79ece | nikhil | N-05 | in-progress | chore(tasks): handoff N-05 - offline part done, waiting on U-01 |
@@ -107,5 +109,3 @@
 | 2026-11-19 | a9aafea | roop | R-09 | in-progress | merge: R-09 --lint sub-branch into task branch |
 | 2026-11-19 | a09cbdd | roop | R-09 | in-progress | build(frontend): add ESLint flat config and lint script |
 | 2026-11-19 | 0823f4a | uday | U-01 | blocked | docs(boomi): U-01 Boomi environment checklist, waiting on platform checks |
-| 2026-11-19 | f9813db | roop | R-09 | in-progress | ci: add CI workflow for backend, frontend and python suites |
-| 2026-11-19 | 56f0c5f | uday | U-02 | done | fix(backend): isolate settings tests from .env, non-root image can write /app |

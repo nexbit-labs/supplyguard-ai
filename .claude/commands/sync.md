@@ -1,6 +1,7 @@
 ---
 description: Bring the current task branch up to date with collaboration and re-run tests
 model: sonnet
+effort: low
 ---
 1. Commit or stash nothing silently - if the tree is dirty, commit it as WIP with trailers (`Status: in-progress`).
 2. `python scripts/gitflow.py local-sync`. If it reports a conflict, do it by hand: `git pull --no-rebase origin <branch>` then `git merge origin/collaboration` (merge, never rebase).

@@ -2,6 +2,7 @@
 description: Verify, fix conflicts and merge every open PR / ready task branch into collaboration
 argument-hint: [optional: member or PR number to limit the run]
 model: opus
+effort: medium
 ---
 Merge everything that is ready into `collaboration`. Scope: $ARGUMENTS (default: all members).
 
@@ -13,7 +14,7 @@ Team policy (CLAUDE.md section 5): every member is an admin and no human approva
 4. **For each candidate**, one at a time:
    a. Check it out in the worktree and bring it up to date with `git merge origin/collaboration` (never rebase). Resolve conflicts with the CLAUDE.md conflict rules. A contradiction in `docs/CONTRACTS.md` -> skip and report.
    b. `test-runner` on every suite the branch touches (backend pytest, frontend test + build, mock-erp, ai schema tests).
-   c. `reviewer` on `origin/collaboration...HEAD`. CHANGES REQUIRED -> if the fix is small and inside that member's stream, delegate it to `implementer`, commit with that task's trailers, re-test, re-review; otherwise skip and report.
+   c. `reviewer-lite` on `origin/collaboration...HEAD` (`reviewer` for the sensitive areas in CLAUDE.md section 4). CHANGES REQUIRED -> if the fix is small and inside that member's stream, delegate it to `implementer`, commit with that task's trailers, re-test, re-review; otherwise skip and report.
    d. Push the branch (plain push, never force), then merge: `gh pr create` if no PR, `gh pr merge <n> --merge --delete-branch` (`--admin` if protection blocks). Without `gh`: `git merge --no-ff` into `collaboration` with message `merge: <ID> <title>` + trailers, test, `git push origin collaboration`, delete the remote branch and its `--<sub>` branches.
    e. Re-run the quick suites on the new `collaboration` before the next candidate.
 5. Run `python scripts/gitflow.py sync-branches` so every open task branch gets the new `collaboration` (the branch-sync Action also does this on push).

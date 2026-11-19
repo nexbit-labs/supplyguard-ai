@@ -2,6 +2,7 @@
 description: Show a member's (or the whole team's) progress - done, in progress, pending, overdue, next task, where they left off
 argument-hint: [roop|nikhil|uday|shared|all]
 model: haiku
+effort: low
 ---
 Show progress for: **$ARGUMENTS** (default: all)
 
