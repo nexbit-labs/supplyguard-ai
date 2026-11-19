@@ -15,7 +15,7 @@ There is no team lead. Each shared task has one **driver** who is accountable fo
 ---
 
 ### S-01: Freeze contracts v1
-- **Status:** in-progress
+- **Status:** blocked
 - **Sprint:** S0 (19-20 Nov) | **Est:** 0.5d | **Depends:** -
 - **Driver:** Uday
 - **Branch:** `uday/S-01-contracts`
@@ -26,7 +26,7 @@ There is no team lead. Each shared task has one **driver** who is accountable fo
   - [ ] Nikhil approved sections 3, 5, 6, 7
   - [ ] Uday approved sections 1, 2, 4, 8
 - **Done in:** -
-- **Notes:** Decide on the call: PO `expected_date` (header, used by section 5 PATCH and LLD) vs line `due_date` (seed snapshot) - section 6 evidence example uses `expected_date`. Also ratify Nikhil's schema tightenings listed in `ai/README.md` 'Proposed for S-01'.
+- **Notes:** needs uday: run the 30-min call with Roop + Nikhil using `docs/CONTRACTS_V1_AGENDA.md` (55 items, each with a recommended decision; on branch `uday/S-01-contracts`), record accept/reject per item, then tell Claude "S-01 decided" so it applies them to CONTRACTS.md v1. Decide on the call: PO `expected_date` (header, used by section 5 PATCH and LLD) vs line `due_date` (seed snapshot) - section 6 evidence example uses `expected_date`. Also ratify Nikhil's schema tightenings listed in `ai/README.md` 'Proposed for S-01'.
 
 ### S-02: Sprint-end integration demos
 - **Status:** todo
