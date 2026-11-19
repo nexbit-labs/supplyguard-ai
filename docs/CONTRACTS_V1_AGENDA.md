@@ -1,0 +1,118 @@
+# CONTRACTS v1 freeze - decision sheet (task S-01)
+
+Driver: Uday. Base: `docs/CONTRACTS.md` v0.2. Sources: `ai/README.md` and `data/README.md` ("Proposed for S-01"), `mock-erp/README.md` ("Open items"), `tasks/NIKHIL.md` N-01/N-03 notes, `tasks/ROOP.md` Handoff, `tasks/SHARED.md` S-01, LLD 16.x in `docs/BRD_HLD_LLD.md`.
+Each item has a RECOMMENDED decision. Default on the call: accept the recommendation unless someone objects. Where a source was unclear, the row says so. Items marked "(new)" were not raised in any source file; they are gaps found while preparing this sheet.
+
+## How to run the call (30 min)
+1. (2 min) Uday shares this sheet. Rule: silence = accept the recommendation.
+2. (8 min) D-0.1 (`expected_date` vs `due_date`) first, since it touches sections 5, 6 and the seed. Then section 5 and 6 (Nikhil): D-5.x, D-6.x.
+3. (5 min) Sections 4 and 2 (Roop): D-4.x, D-2.x (auth asks).
+4. (5 min) Sections 1, 3, 7, 8: D-1.x, D-3.x, D-7.x, D-8.x.
+5. (5 min) Anything rejected or deferred: assign an owner and a date; mark it "not in v1".
+6. (5 min) Sign-off checklist (below), then "After the call".
+
+Approvers: Roop = sections 2, 4. Nikhil = 3, 5, 6, 7. Uday = 1, 2, 4, 8. Item 0.x needs all three.
+
+Sign-off checklist (matches the S-01 acceptance boxes in `tasks/SHARED.md`):
+- [ ] Roop approved sections 4 (UI-facing endpoints) and 2 (roles shown in the UI)
+- [ ] Nikhil approved sections 3, 5, 6, 7
+- [ ] Uday approved sections 1, 2, 4, 8
+- [ ] Every item below is marked ACCEPT / MODIFY / REJECT / DEFER (write it in the PR description or next to the item)
+
+## 0. Cross-cutting (all three)
+| # | Item | Raised by | Current v0.2 text | Proposal | RECOMMENDED | Approve |
+|---|---|---|---|---|---|---|
+| D-0.1 | PO date field: header `expected_date` vs line `due_date` | S-01 notes; N-01 reviewer (MAJOR); `data/README.md` | s5: PATCH changes `expected_date`. s6 evidence example cites `expected_date`. Seed/snapshot POs have a header `expected_date` (= latest line `due_date`) and line `due_date`. LLD 16.1 has header `expected_date` only | Keep both and document the relationship | Keep both. Header `expected_date` = PO-level field (LLD, PATCH, UI). Line `due_date` = per-line field (impact rule, evidence). PATCH `expected_date` moves the header and every line `due_date` (mock ERP already does this). Fix the s6 analysis example to cite `entity: PO-1001, field: due_date, item_id: ITM-501`. No seed change | Roop, Nikhil, Uday |
+| D-0.2 | CONTRACTS names win over LLD 16.1 names | `data/README.md` | not stated | Add one sentence and point to the field table in `data/README.md` (inventory `on_hand`/`reserved`, event `event_time`/`expected_duration_hours`/`source_system`, money object) | Accept | Nikhil, Uday |
+
+## 1. Conventions (Uday)
+| # | Item | Raised by | Current v0.2 text | Proposal | RECOMMENDED | Approve |
+|---|---|---|---|---|---|---|
+| D-1.1 | Error code `INTERNAL_ERROR` | `mock-erp/README.md` | Codes stop at `DOWNSTREAM_TIMEOUT`; chaos 500 returns `INTERNAL_ERROR` | Add `INTERNAL_ERROR` (500, "unexpected server error") | Accept. Django's generic 500 handler uses it too; Boomi maps ERP `INTERNAL_ERROR` to `DOWNSTREAM_ERROR` (502) toward Django | Uday |
+| D-1.2 | Money precision | `ai/README.md`, `data/README.md` | "decimal as string", no dp stated | Seed/ERP/agent-output money = exactly 2 dp; snapshot money may carry 0-4 dp on input | Accept: outputs are 2 dp strings, inputs tolerate up to 4 dp | Uday, Nikhil |
+| D-1.3 | ID format patterns | `ai/README.md` (ID regexes in schemas) | prefixed strings, examples only | Treat the regexes in `ai/schemas/common.schema.json` as normative | Accept by reference (one source of truth, do not copy regexes). Unclear from sources whether Django models will enforce them; Uday confirms in U-03 | Uday, Nikhil |
+| D-1.4 | (new) `TEN-` prefix missing from the ID list | gap | s1 ID list omits tenant ids, s3 uses `TEN-ACME` | Add `TEN-ACME` / `TEN-GLOBEX` style | Accept | Uday |
+
+## 2. Roles and auth (Roop, Uday)
+| # | Item | Raised by | Current v0.2 text | Proposal | RECOMMENDED | Approve |
+|---|---|---|---|---|---|---|
+| D-2.1 | JWT access lifetime | Roop (Handoff) | s4: "simplejwt". Code default 30 min (`JWT_ACCESS_MINUTES`) | Fix a value | 15 minutes, env-overridable. Frontend already refreshes on 401 | Roop, Uday |
+| D-2.2 | JWT refresh lifetime | Roop: "<= 1 day" | Code default 1 day (`JWT_REFRESH_DAYS`) | Fix a value | 1 day. Note: the example in the call brief ("7 days") conflicts with Roop's explicit ask of <= 1 day (refresh token sits in localStorage), so honour Roop. Env override for demo day | Roop, Uday |
+| D-2.3 | Refresh rotation | Roop: keep `ROTATE_REFRESH_TOKENS` off | Not set (simplejwt default off) | Decide yes/no | OFF in v1, no blacklist app. Frontend refreshes from several tabs and cross-tab rotation handling is deferred in R-01; rotation would log users out on a race. Revisit in S-04 | Roop, Uday |
+| D-2.4 | `/me` response shape | Roop (provisional in `frontend/src/api/types.ts`: `{user:{id,username,full_name,email}, tenant:{id,name}, role}`) | s4: "user + tenant + role" | Fix the JSON | Flat user: `{ "id": "...", "email": "...", "name": "...", "role": "ADMIN", "tenant": { "id": "TEN-ACME", "name": "Acme Industries" } }`. Roop updates `types.ts` and the MSW mock (no `username`). Unclear whether the UI needs `username`; if yes add it, equal to `email` | Roop, Uday |
+| D-2.5 | Token endpoints and claims | s4 | `POST /auth/token`, `/auth/refresh`; claims `user_id`, `tenant_id`, `role` | State request/response | Keep claims. `/auth/token` body `{email,password}` (unclear if Roop's login form uses email or username; confirm), response `{access, refresh}`; `/auth/refresh` body `{refresh}` response `{access}` | Roop, Uday |
+| D-2.6 | (new) Role-per-endpoint column in s4 | gap | s2 is prose; s4 names a role on some rows only | Add a "Roles" column to every s4 row | Reads: all four user roles. What-if: OPS_MANAGER, PROCUREMENT_MANAGER, ADMIN. Decision and retry: PROCUREMENT_MANAGER only. Settings, users, integrations: ADMIN. Audit: ADMIN + PROCUREMENT_MANAGER (read). Suggestion only, not from a source; Roop's R-08 gating depends on it | Roop, Uday |
+| D-2.7 | (new) 401 vs 403 | gap | codes defined in s1 | Expired/invalid token = 401 `UNAUTHENTICATED` (frontend refreshes); wrong role or tenant = 403 `FORBIDDEN` | Accept | Roop, Uday |
+
+## 3. Canonical disruption event (Nikhil)
+| # | Item | Raised by | Current v0.2 text | Proposal | RECOMMENDED | Approve |
+|---|---|---|---|---|---|---|
+| D-3.1 | Event field names vs LLD | `data/README.md` | s3 names | s3 wins (see D-0.2) | Accept, no shape change | Nikhil |
+| D-3.2 | Scenario timestamps in `/demo/simulate-disruption` | `data/README.md` | "builds a canonical event from a scenario name" | Scenarios carry their own `event_time`; either replay it, or re-anchor the seed with `--as-of <today>` | Accept: endpoint takes an optional `event_time`, default = scenario value; note in s4. Source phrases this as a caveat, not a hard requirement | Nikhil, Uday |
+| D-3.3 | (new) Unknown supplier event (TC-02) | `data/README.md` scenario `tc02` ("flagged, no impact") | s3 silent | Unknown `supplier_id` is accepted (202); a RiskCase is created and flagged with no affected POs; not a 400 | Accept. Exact HTTP behaviour is not stated in any source, hence the explicit decision | Nikhil, Uday |
+| D-3.4 | Other topics (`shipment.delay`, `recovery.status`) | s3 | inline only | No schema files for v1 | Accept unchanged | Nikhil |
+
+## 4. Django REST API (Roop, Uday)
+| # | Item | Raised by | Current v0.2 text | Proposal | RECOMMENDED | Approve |
+|---|---|---|---|---|---|---|
+| D-4.1 | `/me` shape | Roop | see D-2.4 | see D-2.4 | see D-2.4 | Roop, Uday |
+| D-4.2 | (new) Pagination on every list | gap | `{count,next,previous,results}` only on suppliers | Apply to all list endpoints (risk-cases, users, audit); page size 25 (DRF default already in code), `?page=` | Accept | Roop, Uday |
+| D-4.3 | Body of `POST /internal/risk-cases` | gap (not specified anywhere) | "posts ERP snapshot" | Snapshot = the ERP-snapshot part of `agent_input.schema.json` | Accept: same field names as the s5 ERP responses (`supplier`, `purchase_orders[]`, `inventory[]`, `alternate_suppliers[]`, `shipments[]`); Uday + Nikhil confirm against the schema | Uday, Nikhil |
+| D-4.4 | `POST /events/disruptions` response | s3 vs s4 | s3: duplicate -> 200 with `correlation_id` and `risk_case_id`; s4: new -> 202 `{event_id, correlation_id, status}` | Same keys both ways | Accept: both return `{event_id, correlation_id, status, risk_case_id}`; `risk_case_id` may be null on 202 if creation is async | Uday |
+| D-4.5 | `GET /risk-cases/{id}` nested shapes | s4 | "approvals, executions, timeline", no shape | Defer to OpenAPI (`/api/schema/`), which s4 already calls the machine-readable version | Accept, no change in v1 | Roop |
+| D-4.6 | `agent_input` as snapshot contract | `ai/README.md` | not in contract | see D-6.1 | see D-6.1 | Uday, Nikhil |
+
+## 5. Mock ERP API (Nikhil)
+| # | Item | Raised by | Current v0.2 text | Proposal | RECOMMENDED | Approve |
+|---|---|---|---|---|---|---|
+| D-5.1 | `GET /erp/purchase-orders/{id}` | N-03 | missing | Add (U-10 re-reads after a write) | Accept | Nikhil |
+| D-5.2 | `GET /erp/shipments?po_id=&status=` | N-03 | missing | Add | Accept | Nikhil |
+| D-5.3 | `X-Tenant-ID` header | N-03 | missing | Required on PATCH, optional on reads (absent = all tenants); another tenant's id -> 404 | Accept, with one change: make it required on every `/erp/*` call (Boomi always sends it; "absent = all tenants" is a cross-tenant leak path). If Nikhil prefers, keep as implemented | Nikhil, Uday |
+| D-5.4 | PATCH body | N-03 | "change `expected_date` / `supplier_id` / split qty" | Document the three forms: `{expected_date}`, `{supplier_id}`, `{supplier_id, qty[, item_id][, expected_date]}`; optional `approval_id`, `reason`; unknown fields 400; response `{idempotency_key, change_type, po, created_po}` | Accept; copy the table from `mock-erp/README.md` into s5 | Nikhil |
+| D-5.5 | INVENTORY_TRANSFER is not a PO change | N-03 | s6 allows the option type; s5 has no endpoint | U-10 must not PATCH it (400) | Accept for v1: approval recorded, no ERP write. What final state the case reaches is unclear in all sources; propose RECOVERED with a note "manual transfer", Nikhil (transition owner) confirms | Nikhil, Uday |
+| D-5.6 | `Idempotency-Key` = `execution_id` | N-03 | "header required" | Boomi sends `execution_id` and reuses it on every retry (a new key would apply a SPLIT twice) | Accept | Nikhil, Uday |
+| D-5.7 | 409 semantics and replay header | N-03 | missing | `CONFLICT` with `details.reason` in `IN_FLIGHT`, `KEY_REUSED`, `RESET_DURING_REQUEST`; replays carry `Idempotent-Replayed: true` | Accept (copy to s5) | Nikhil |
+| D-5.8 | `INTERNAL_ERROR` | N-03 | missing | see D-1.1 | see D-1.1 | Nikhil |
+| D-5.9 | Inventory fields | `data/README.md`, N-03 | `on_hand, reserved, safety_stock` | Add `daily_demand` (units/day) and `location_id` filter | Accept | Nikhil |
+| D-5.10 | Alternate supplier fields | N-03 | `lead_time_days, unit_price, capacity` | Add `qualified` and `?qualified=`; `capacity` units/week, null = unknown (agents report as missing data) | Accept | Nikhil |
+| D-5.11 | PO response shape | N-02/N-03 | "lines: item_id, qty, due_date, unit_price" | Document header `po_id, tenant_id, supplier_id, order_date, expected_date, status, amount{amount,currency}`, lines also `line_no`, `item_name`; list response `{count, results}` | Accept | Nikhil |
+| D-5.12 | ERP auth | N-03 | none | `X-Api-Key` when `MOCK_ERP_API_KEY` is set; Boomi connection sends it | Accept (also goes in `docs/BOOMI_ENV.md`, Uday) | Nikhil, Uday |
+| D-5.13 | Test-only endpoints | N-03 | `_chaos` only | Add `_reset`, `_requests`; hidden when `MOCK_ERP_ENABLE_TEST_ENDPOINTS=false`; chaos accepts `delay_seconds` | Accept, labelled "test only" | Nikhil |
+| D-5.14 | Chaos `timeout` semantics | N-03 | `mode: timeout` | PATCH hangs, then applies the write; retry with the same key gets 409 while hung, then the stored result | Accept (drives U-10 and TC-08) | Nikhil, Uday |
+
+## 6. AI agent contracts (Nikhil)
+| # | Item | Raised by | Current v0.2 text | Proposal | RECOMMENDED | Approve |
+|---|---|---|---|---|---|---|
+| D-6.1 | `agent_input.schema.json` as the agent/snapshot input contract | `ai/README.md` | not in s6 | Add as third schema; `RECOVERY_PLANNER` input must carry `risk_analysis`, `RISK_ANALYST` must not | Accept; one line in s6 pointing at the file (do not paste it) | Nikhil, Uday |
+| D-6.2 | Evidence qualifiers | `ai/README.md` | `{source, entity, field, value}` | `source` enum `ERP\|EVENT\|IMPACT`; optional `item_id`, `location_id`; `value` may be null (= missing) | Accept | Nikhil |
+| D-6.3 | Nullable estimates | `ai/README.md` | example has values only | `estimated_lead_time_days` and `estimated_cost_delta` nullable; then `data_gaps` must be non-empty | Accept | Nikhil |
+| D-6.4 | `affected_entities.type` enum | `ai/README.md` | free string `"PO"` | Enum as in `ai/schemas/` | Accept; full list lives in the schema (not reproduced here) | Nikhil |
+| D-6.5 | `confidence` enum | `ai/README.md` | `"MEDIUM"` | `LOW\|MEDIUM\|HIGH` (exact values per schema) | Accept | Nikhil |
+| D-6.6 | `change` fields per `option_type` | `ai/README.md` | ALTERNATE_SUPPLIER example only | ALTERNATE_SUPPLIER -> `supplier_id`; SPLIT_ORDER -> `supplier_id`+`qty`; REVISED_SCHEDULE -> `expected_date`; INVENTORY_TRANSFER -> `item_id`,`from_location_id`,`to_location_id`,`qty` | Accept. Ask Nikhil to also allow optional `item_id` on ALTERNATE_SUPPLIER/SPLIT_ORDER (mock ERP PATCH uses it for multi-line POs) | Nikhil |
+| D-6.7 | Other tightenings (N-01 reviewer follow-up 2) | N-01 review | examples only | risk_level enum, `risk_score` 0-100, `rank` >= 1, `minItems`, ID regexes, non-blank strings, `additionalProperties:false`, all keys required (empty arrays OK) | Accept as one sentence: "`ai/schemas/` is normative; s6 examples are illustrative" | Nikhil |
+| D-6.8 | Recovery example arithmetic | `data/README.md` | `qty: 400` with delta 33,600.00 | `qty` -> 4000 ((84.00 - 75.60) x 4000) | Accept | Nikhil |
+| D-6.9 | Analysis example evidence | D-0.1 | `field: expected_date` | `due_date` + `item_id` | see D-0.1 | Nikhil |
+| D-6.10 | Agent money = exactly 2 dp | `ai/README.md` | not stated | see D-1.2 | Accept | Nikhil |
+| D-6.11 | Schema vs N-07 responsibilities | `ai/README.md` | "validator rejects options whose IDs/qty/prices do not exist" | Schema = shape only; N-07 = evidence resolves and matches, IDs/qty/prices exist, ranks unique and contiguous, agent `risk_score` vs `impact.risk_score`; N-07/N-08 take tenant from the stored case, not the payload | Accept. Tolerance for the score comparison is not stated in any source; propose exact match | Nikhil |
+| D-6.12 | `bundled_schema` docstring, 3 missing option-type fixtures | N-01 follow-ups 3, 4 | n/a | Not contract items (code/test tidy-up in `ai/`) | No decision needed; Nikhil handles | - |
+
+## 7. RiskCase state machine (Nikhil)
+| # | Item | Raised by | Current v0.2 text | Proposal | RECOMMENDED | Approve |
+|---|---|---|---|---|---|---|
+| D-7.1 | (new) Explicit transition list | gap (diagram is hard to read) | ASCII diagram | Add the list: RECEIVED->ANALYZING; ANALYZING->RECOMMENDATION_READY; RECOMMENDATION_READY->PENDING_APPROVAL; PENDING_APPROVAL->APPROVED or REJECTED; APPROVED->EXECUTING; EXECUTING->RECOVERED or EXECUTION_FAILED; EXECUTION_FAILED->EXECUTING or CLOSED; REJECTED->ANALYZING or CLOSED; RECOVERED->CLOSED | Accept (reads straight off the diagram, no behaviour change) | Nikhil |
+| D-7.2 | (new) No viable option (TC-05) | gap | s6 allows `options: []`; s7 silent | Case reaches RECOMMENDATION_READY with zero options; nothing to approve | Recommend: allow `RECOMMENDATION_READY -> CLOSED` (not in the diagram) and re-analysis via `-> ANALYZING`; never PENDING_APPROVAL with zero options. Nikhil decides | Nikhil |
+| D-7.3 | 409 detail | s7 | "Invalid transition -> 409 CONFLICT" | `details = {from, to}` | Accept | Nikhil, Uday |
+| D-7.4 | (new) Actor for system-driven transitions | gap | `transition(case, to_state, actor)` | actor = user id or the literal `SYSTEM`; AuditEvent records which | Accept | Nikhil, Uday |
+
+## 8. Fallbacks (Uday)
+| # | Item | Raised by | Current v0.2 text | Proposal | RECOMMENDED | Approve |
+|---|---|---|---|---|---|---|
+| D-8.1 | Fallbacks "decided in U-01" | s8 header | U-01 (manual Boomi account checks) is not done; no source gives a final choice | Freeze s8 as defaults | Freeze as "defaults, subject to U-01". If U-01 activates one, add a changelog line; shapes do not change either way | Uday |
+| D-8.2 | `AGENT_BACKEND` switch | N-09 task | s8 describes fallback only | Name `AGENT_BACKEND=boomi\|claude\|mock` | Accept | Uday, Nikhil |
+
+## After the call (Uday, about 30 min)
+1. Mark every item ACCEPT / MODIFY / REJECT / DEFER (PR description is enough).
+2. Apply accepted items to `docs/CONTRACTS.md`: s1 (D-1.x, D-0.2), s2 (D-2.x, role column), s3 (D-3.x), s4 (`/me`, pagination, event response keys, internal snapshot), s5 (new endpoints, headers, PATCH/idempotency tables), s6 (normative-schema sentence, `agent_input` pointer, qty fix, evidence example), s7 (transition list), s8 (`AGENT_BACKEND`).
+3. Retitle to v1 (FROZEN), update the Status and Rule lines, add a changelog row `1.0 | <date> | Roop + Nikhil + Uday | Frozen after S-01 call; accepted items: <ids>`.
+4. Tell the owners of follow-up code: Roop (`/me` shape in `frontend/src/api/types.ts` and MSW mocks), Nikhil (schema/README/fixture tidy-ups), Uday (`SIMPLE_JWT`: 15 min / 1 day / no rotation, `INTERNAL_ERROR`, U-10 idempotency rules).
+5. Tick the three acceptance boxes in `tasks/SHARED.md` S-01, set Status `review`, run `/handoff`. Ticking the "Proposed for S-01" boxes in N-01/N-02/N-03 follows once this is merged.
