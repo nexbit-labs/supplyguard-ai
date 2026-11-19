@@ -15,6 +15,8 @@ env = environ.Env(
     DEBUG=(bool, False),
     ALLOWED_HOSTS=(list, ["localhost", "127.0.0.1", "[::1]"]),
     CORS_ALLOWED_ORIGINS=(list, ["http://localhost:5173"]),
+    CSRF_TRUSTED_ORIGINS=(list, []),
+    BEHIND_HTTPS_PROXY=(bool, False),
 )
 # Local runs outside docker: read the repo-root .env (docker compose injects env itself).
 for _env_file in (BASE_DIR.parent / ".env", BASE_DIR / ".env"):
@@ -29,7 +31,18 @@ SECRET_KEY = env("SECRET_KEY", default="") or ("dev-insecure-secret-key" if DEBU
 if not SECRET_KEY:
     raise ImproperlyConfigured("SECRET_KEY must be set when DEBUG is off.")
 
-ALLOWED_HOSTS = env("ALLOWED_HOSTS")
+ALLOWED_HOSTS = list(env("ALLOWED_HOSTS"))
+# Render injects the service hostname; allow it without manual configuration.
+_render_host = env("RENDER_EXTERNAL_HOSTNAME", default="")
+if _render_host and _render_host not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(_render_host)
+
+# Full origins incl. scheme, e.g. https://x.trycloudflare.com (needed for HTTPS POSTs).
+CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS")
+
+# Trust X-Forwarded-Proto only when explicitly behind an HTTPS proxy (else it can be spoofed).
+if env("BEHIND_HTTPS_PROXY"):
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # --- Applications -----------------------------------------------------------------------
 # One shell per bounded area so teammates can add models/views without editing settings.

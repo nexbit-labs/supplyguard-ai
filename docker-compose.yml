@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-supplyguard}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-supplyguard}
     ports:
-      - "${DB_PORT:-5432}:5432"
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -19,7 +19,7 @@ services:
   backend:
     build: ./backend
     # Dev-only stack: runserver auto-reloads and serves admin static files (gunicorn does not).
-    # Production images use the Dockerfile CMD (gunicorn); see deploy/ in U-12.
+    # The backend/Dockerfile CMD is production gunicorn (non-root); see deploy/.
     command: >
       sh -c "python manage.py migrate --noinput &&
              python manage.py runserver 0.0.0.0:8000"
@@ -38,18 +38,20 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       JWT_ACCESS_MINUTES: ${JWT_ACCESS_MINUTES:-30}
       JWT_REFRESH_DAYS: ${JWT_REFRESH_DAYS:-1}
+      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-}
+      BEHIND_HTTPS_PROXY: ${BEHIND_HTTPS_PROXY:-False}
       # Placeholder for later tasks (ERP executor); harmless until used.
       MOCK_ERP_URL: ${MOCK_ERP_URL:-http://mock-erp:8081}
       MOCK_ERP_API_KEY: ${MOCK_ERP_API_KEY:-}
     volumes:
       - ./backend:/app
     ports:
-      - "${BACKEND_PORT:-8000}:8000"
+      - "127.0.0.1:${BACKEND_PORT:-8000}:8000"
     depends_on:
       db:
         condition: service_healthy
       mock-erp:
-        condition: service_started
+        condition: service_healthy
 
   mock-erp:
     build:
@@ -60,7 +62,7 @@ services:
       MOCK_ERP_ENABLE_TEST_ENDPOINTS: ${MOCK_ERP_ENABLE_TEST_ENDPOINTS:-true}
       MOCK_ERP_CHAOS_DELAY_SECONDS: ${MOCK_ERP_CHAOS_DELAY_SECONDS:-35}
     ports:
-      - "${MOCK_ERP_PORT:-8081}:8081"
+      - "127.0.0.1:${MOCK_ERP_PORT:-8081}:8081"
     # The image defines its own HEALTHCHECK on /health.
 
   frontend:
@@ -71,11 +73,12 @@ services:
       # The browser calls the backend directly (vite proxy is hardcoded to localhost:8000).
       VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:${BACKEND_PORT:-8000}/api/v1}
       VITE_API_MOCK: ${VITE_API_MOCK:-false}
+      CHOKIDAR_USEPOLLING: "true"
     volumes:
       - ./frontend:/app
       - frontend_node_modules:/app/node_modules
     ports:
-      - "${FRONTEND_PORT:-5173}:5173"
+      - "127.0.0.1:${FRONTEND_PORT:-5173}:5173"
     depends_on:
       - backend
 

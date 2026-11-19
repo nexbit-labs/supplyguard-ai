@@ -25,6 +25,8 @@ First start takes a few minutes (frontend runs `npm ci`). The backend migrates t
 
 Ports are overridable in `.env`: `FRONTEND_PORT`, `BACKEND_PORT`, `MOCK_ERP_PORT`, `DB_PORT`. The frontend calls the backend directly at `http://localhost:${BACKEND_PORT}/api/v1`; set `VITE_API_MOCK=true` in `.env` to use the in-browser MSW mocks instead.
 
+**Note:** the real API has no login endpoints until U-03/U-04 land, so with the default `VITE_API_MOCK=false` you cannot sign in. Set `VITE_API_MOCK=true` in `.env` to click through the UI until then. All published ports bind to `127.0.0.1` only.
+
 ## Running tests
 ```
 python scripts/run_checks.py

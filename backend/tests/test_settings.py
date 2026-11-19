@@ -44,3 +44,28 @@ def test_empty_secret_key_falls_back_only_in_debug(monkeypatch, reload_settings)
     monkeypatch.setenv("SECRET_KEY", "")
     reload_settings()
     assert settings_module.SECRET_KEY == "dev-insecure-secret-key"
+
+
+def test_render_hostname_appended_to_allowed_hosts(monkeypatch, reload_settings):
+    monkeypatch.setenv("RENDER_EXTERNAL_HOSTNAME", "app.onrender.com")
+    reload_settings()
+    assert "app.onrender.com" in settings_module.ALLOWED_HOSTS
+    assert "localhost" in settings_module.ALLOWED_HOSTS
+
+
+def test_csrf_trusted_origins_from_env(monkeypatch, reload_settings):
+    monkeypatch.delenv("CSRF_TRUSTED_ORIGINS", raising=False)
+    reload_settings()
+    assert settings_module.CSRF_TRUSTED_ORIGINS == []
+    monkeypatch.setenv("CSRF_TRUSTED_ORIGINS", "https://a.example.com,https://b.example.com")
+    reload_settings()
+    assert settings_module.CSRF_TRUSTED_ORIGINS == ["https://a.example.com", "https://b.example.com"]
+
+
+def test_proxy_ssl_header_only_when_flagged(monkeypatch, reload_settings):
+    monkeypatch.delenv("BEHIND_HTTPS_PROXY", raising=False)
+    reload_settings()
+    assert not hasattr(settings_module, "SECURE_PROXY_SSL_HEADER")
+    monkeypatch.setenv("BEHIND_HTTPS_PROXY", "True")
+    reload_settings()
+    assert settings_module.SECURE_PROXY_SSL_HEADER == ("HTTP_X_FORWARDED_PROTO", "https")
