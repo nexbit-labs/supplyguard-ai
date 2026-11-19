@@ -65,6 +65,12 @@ def test_expected_errors_map_matches_fixture_files():
     assert set(EXPECTED) == {p.stem for p in (FIXTURES / "invalid").glob("*.json")}
 
 
+def test_all_option_types_fixture_covers_every_option_type():
+    fixture = _load(FIXTURES / "valid" / "recovery_plan__all_option_types.json")
+    enum = set(load_schema("common")["$defs"]["optionType"]["enum"])
+    assert {o["option_type"] for o in fixture["options"]} == enum
+
+
 def test_every_schema_has_valid_and_invalid_fixtures():
     for name in AGENT_SCHEMAS:
         assert list((FIXTURES / "valid").glob(f"{name}__*.json")), name

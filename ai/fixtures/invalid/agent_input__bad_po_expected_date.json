@@ -1,0 +1,143 @@
+{
+  "agent": "RISK_ANALYST",
+  "risk_case_id": "RC-000045",
+  "tenant_id": "TEN-ACME",
+  "correlation_id": "6f1c2a9e-8f0b-4c7a-9a43-2f3d1b5e7c10",
+  "event": {
+    "event_id": "EVT-000123",
+    "tenant_id": "TEN-ACME",
+    "supplier_id": "SUP-1008",
+    "event_type": "FACTORY_OUTAGE",
+    "severity": "HIGH",
+    "event_time": "2026-12-02T10:15:00Z",
+    "expected_duration_hours": 48,
+    "description": "Line 2 fire, production halted",
+    "source_system": "supplier-portal",
+    "correlation_id": "6f1c2a9e-8f0b-4c7a-9a43-2f3d1b5e7c10"
+  },
+  "snapshot": {
+    "captured_at": "2026-12-02T10:15:04Z",
+    "supplier": {
+      "supplier_id": "SUP-1008",
+      "name": "Shakti Components Pvt Ltd"
+    },
+    "supplier_history": [
+      {
+        "date": "2026-06-10",
+        "event_type": "SHIPMENT_DELAY",
+        "delay_days": 3
+      }
+    ],
+    "purchase_orders": [
+      {
+        "po_id": "PO-1001",
+        "supplier_id": "SUP-1008",
+        "status": "OPEN",
+        "expected_date": "03-12-2026",
+        "lines": [
+          {
+            "item_id": "ITM-501",
+            "qty": 4000,
+            "due_date": "2026-12-03",
+            "unit_price": {
+              "amount": "75.60",
+              "currency": "INR"
+            }
+          }
+        ]
+      },
+      {
+        "po_id": "PO-1002",
+        "supplier_id": "SUP-1008",
+        "status": "OPEN",
+        "expected_date": "2026-12-04",
+        "lines": [
+          {
+            "item_id": "ITM-501",
+            "qty": 2500,
+            "due_date": "2026-12-04",
+            "unit_price": {
+              "amount": "75.60",
+              "currency": "INR"
+            }
+          }
+        ]
+      }
+    ],
+    "inventory": [
+      {
+        "item_id": "ITM-501",
+        "location_id": "DC-PUNE",
+        "on_hand": 1100,
+        "reserved": 200,
+        "safety_stock": 300
+      },
+      {
+        "item_id": "ITM-501",
+        "location_id": "DC-CHENNAI",
+        "on_hand": 800,
+        "reserved": 100,
+        "safety_stock": 200
+      }
+    ],
+    "alternate_suppliers": [
+      {
+        "supplier_id": "SUP-2001",
+        "item_id": "ITM-501",
+        "lead_time_days": 2,
+        "unit_price": {
+          "amount": "84.00",
+          "currency": "INR"
+        },
+        "capacity": 5000
+      },
+      {
+        "supplier_id": "SUP-2002",
+        "item_id": "ITM-501",
+        "lead_time_days": 5,
+        "unit_price": {
+          "amount": "79.50",
+          "currency": "INR"
+        },
+        "capacity": null
+      }
+    ]
+  },
+  "impact": {
+    "risk_score": 92,
+    "total_exposure": {
+      "amount": "491400.00",
+      "currency": "INR"
+    },
+    "affected_pos": [
+      {
+        "po_id": "PO-1001",
+        "item_id": "ITM-501",
+        "affected_qty": 4000,
+        "estimated_delay_days": 2,
+        "exposure_amount": {
+          "amount": "302400.00",
+          "currency": "INR"
+        },
+        "inventory_coverage_days": 1.5,
+        "shortage": true
+      },
+      {
+        "po_id": "PO-1002",
+        "item_id": "ITM-501",
+        "affected_qty": 2500,
+        "estimated_delay_days": 1,
+        "exposure_amount": {
+          "amount": "189000.00",
+          "currency": "INR"
+        },
+        "inventory_coverage_days": 1.5,
+        "shortage": true
+      }
+    ]
+  },
+  "data_quality_flags": [
+    "SUP-1008 capacity not provided",
+    "SUP-2002 capacity unknown"
+  ]
+}

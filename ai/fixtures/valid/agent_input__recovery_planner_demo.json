@@ -33,6 +33,7 @@
         "po_id": "PO-1001",
         "supplier_id": "SUP-1008",
         "status": "OPEN",
+        "expected_date": "2026-12-03",
         "lines": [
           {
             "item_id": "ITM-501",
@@ -49,6 +50,7 @@
         "po_id": "PO-1002",
         "supplier_id": "SUP-1008",
         "status": "OPEN",
+        "expected_date": "2026-12-04",
         "lines": [
           {
             "item_id": "ITM-501",
@@ -66,9 +68,16 @@
       {
         "item_id": "ITM-501",
         "location_id": "DC-PUNE",
-        "on_hand": 1200,
-        "reserved": 20,
-        "safety_stock": 50
+        "on_hand": 1100,
+        "reserved": 200,
+        "safety_stock": 300
+      },
+      {
+        "item_id": "ITM-501",
+        "location_id": "DC-CHENNAI",
+        "on_hand": 800,
+        "reserved": 100,
+        "safety_stock": 200
       }
     ],
     "alternate_suppliers": [
@@ -158,6 +167,12 @@
       {
         "source": "ERP",
         "entity": "PO-1001",
+        "field": "expected_date",
+        "value": "2026-12-03"
+      },
+      {
+        "source": "ERP",
+        "entity": "PO-1001",
         "field": "due_date",
         "value": "2026-12-03",
         "item_id": "ITM-501"
@@ -180,7 +195,7 @@
         "source": "ERP",
         "entity": "ITM-501",
         "field": "on_hand",
-        "value": 1200,
+        "value": 1100,
         "location_id": "DC-PUNE"
       },
       {
@@ -198,7 +213,7 @@
     ],
     "facts": [
       "PO-1001 (4000 units ITM-501) is due 2026-12-03, inside the outage window.",
-      "On-hand ITM-501 at DC-PUNE is 1200 units."
+      "On-hand ITM-501 at DC-PUNE is 1100 units (200 reserved)."
     ],
     "estimates": [
       {

@@ -82,6 +82,10 @@
               "po_id": { "$ref": "common.schema.json#/$defs/poId" },
               "supplier_id": { "$ref": "common.schema.json#/$defs/supplierId" },
               "status": { "type": "string" },
+              "expected_date": {
+                "description": "PO header date = latest line due_date (N-02 seed, N-03 mock ERP). Optional until S-01 adds it to CONTRACTS section 5. Evidence cites it without item_id; a line date is cited as due_date + item_id.",
+                "$ref": "common.schema.json#/$defs/isoDate"
+              },
               "lines": {
                 "type": "array",
                 "minItems": 1,

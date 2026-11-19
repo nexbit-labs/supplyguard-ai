@@ -12,7 +12,7 @@ root = pathlib.Path("ai/fixtures")
 
 
 def dump(p, d):
-    (root / p).write_text(json.dumps(d, indent=2) + "\n", encoding="utf-8")
+    (root / p).write_text(json.dumps(d, indent=2) + "\n", encoding="utf-8", newline=chr(10))
 
 
 def ev(e, f, v, src="ERP", **qual):
@@ -37,16 +37,17 @@ risk = {
         {"type": "ITEM", "id": "ITM-501"},
     ],
     "evidence": [
+        ev("PO-1001", "expected_date", "2026-12-03"),
         ev("PO-1001", "due_date", "2026-12-03", item_id="ITM-501"),
         ev("PO-1001", "qty", 4000, item_id="ITM-501"),
         ev("PO-1002", "due_date", "2026-12-04", item_id="ITM-501"),
-        ev("ITM-501", "on_hand", 1200, location_id="DC-PUNE"),
+        ev("ITM-501", "on_hand", 1100, location_id="DC-PUNE"),
         ev("IMPACT", "risk_score", 92, src="IMPACT"),
         ev("EVT-000123", "expected_duration_hours", 48, src="EVENT"),
     ],
     "facts": [
         "PO-1001 (4000 units ITM-501) is due 2026-12-03, inside the outage window.",
-        "On-hand ITM-501 at DC-PUNE is 1200 units.",
+        "On-hand ITM-501 at DC-PUNE is 1100 units (200 reserved).",
     ],
     "estimates": [
         {
@@ -87,7 +88,7 @@ plan = {
             "estimated_lead_time_days": None,
             "estimated_cost_delta": None,
             "trade_offs": ["No extra purchase cost, but about 1.5 days of stock-out risk at DC-PUNE"],
-            "evidence": [ev("ITM-501", "on_hand", 1200, location_id="DC-PUNE")],
+            "evidence": [ev("ITM-501", "on_hand", 1100, location_id="DC-PUNE")],
             "assumptions": [],
             "data_gaps": ["Supplier has not confirmed a restart date"],
         },
@@ -125,12 +126,15 @@ inp = {
         "supplier": {"supplier_id": "SUP-1008", "name": "Shakti Components Pvt Ltd"},
         "supplier_history": [{"date": "2026-06-10", "event_type": "SHIPMENT_DELAY", "delay_days": 3}],
         "purchase_orders": [
-            {"po_id": "PO-1001", "supplier_id": "SUP-1008", "status": "OPEN",
+            {"po_id": "PO-1001", "supplier_id": "SUP-1008", "status": "OPEN", "expected_date": "2026-12-03",
              "lines": [{"item_id": "ITM-501", "qty": 4000, "due_date": "2026-12-03", "unit_price": money("75.60")}]},
-            {"po_id": "PO-1002", "supplier_id": "SUP-1008", "status": "OPEN",
+            {"po_id": "PO-1002", "supplier_id": "SUP-1008", "status": "OPEN", "expected_date": "2026-12-04",
              "lines": [{"item_id": "ITM-501", "qty": 2500, "due_date": "2026-12-04", "unit_price": money("75.60")}]},
         ],
-        "inventory": [{"item_id": "ITM-501", "location_id": "DC-PUNE", "on_hand": 1200, "reserved": 20, "safety_stock": 50}],
+        "inventory": [
+            {"item_id": "ITM-501", "location_id": "DC-PUNE", "on_hand": 1100, "reserved": 200, "safety_stock": 300},
+            {"item_id": "ITM-501", "location_id": "DC-CHENNAI", "on_hand": 800, "reserved": 100, "safety_stock": 200},
+        ],
         "alternate_suppliers": [
             {"supplier_id": "SUP-2001", "item_id": "ITM-501", "lead_time_days": 2, "unit_price": money("84.00"), "capacity": 5000},
             {"supplier_id": "SUP-2002", "item_id": "ITM-501", "lead_time_days": 5, "unit_price": money("79.50"), "capacity": None},
@@ -149,6 +153,46 @@ inp = {
     "data_quality_flags": ["SUP-1008 capacity not provided", "SUP-2002 capacity unknown"],
 }
 
+# One option of every option_type, each with exactly the change fields its type requires.
+all_types = {
+    "risk_case_id": "RC-000045",
+    "options": [
+        plan["options"][0],
+        {
+            "rank": 2,
+            "option_type": "SPLIT_ORDER",
+            "proposed_action": {"po_id": "PO-1002", "change": {"supplier_id": "SUP-2001", "qty": 1500}},
+            "action_steps": ["Move 1500 of 2500 units of PO-1002 to SUP-2001", "Keep 1000 units with SUP-1008"],
+            "estimated_lead_time_days": 2,
+            "estimated_cost_delta": money("12600.00"),
+            "trade_offs": ["Two suppliers to follow up instead of one"],
+            "evidence": [
+                ev("SUP-2001", "capacity", 5000, item_id="ITM-501"),
+                ev("PO-1002", "qty", 2500, item_id="ITM-501"),
+            ],
+            "assumptions": ["SUP-1008 delivers the remaining 1000 units after the outage"],
+            "data_gaps": [],
+        },
+        {
+            "rank": 3,
+            "option_type": "INVENTORY_TRANSFER",
+            "proposed_action": {
+                "po_id": "PO-1001",
+                "change": {"item_id": "ITM-501", "from_location_id": "DC-CHENNAI", "to_location_id": "DC-PUNE", "qty": 500},
+            },
+            "action_steps": ["Transfer 500 units of ITM-501 from DC-CHENNAI to DC-PUNE (800 on hand - 100 reserved - 200 safety stock)"],
+            "estimated_lead_time_days": 1,
+            "estimated_cost_delta": None,
+            "trade_offs": ["DC-CHENNAI drops to its safety stock (200 units)"],
+            "evidence": [ev("ITM-501", "on_hand", 800, location_id="DC-CHENNAI"), ev("ITM-501", "safety_stock", 200, location_id="DC-CHENNAI")],
+            "assumptions": [],
+            "data_gaps": ["Inter-DC freight cost is not in the ERP snapshot"],
+        },
+        {**plan["options"][1], "rank": 4},
+    ],
+    "no_viable_option_reason": None,
+}
+
 inp_rec = copy.deepcopy(inp)
 inp_rec["agent"] = "RECOVERY_PLANNER"
 inp_rec["risk_analysis"] = risk
@@ -157,6 +201,7 @@ inp_rec["constraints"] = {"max_cost_increase_pct": 15, "require_qualified_altern
 dump("valid/risk_analysis__demo_sup1008.json", risk)
 dump("valid/recovery_plan__demo_sup1008.json", plan)
 dump("valid/recovery_plan__tc05_no_option.json", no_opt)
+dump("valid/recovery_plan__all_option_types.json", all_types)
 dump("valid/agent_input__risk_analyst_demo.json", inp)
 dump("valid/agent_input__recovery_planner_demo.json", inp_rec)
 
@@ -198,7 +243,15 @@ bad("risk_analysis__evidence_unknown_source", risk, lambda d: d["evidence"][0].u
 bad("recovery_plan__null_estimate_without_data_gaps", plan, lambda d: d["options"][1].update(data_gaps=[]), "minItems")
 bad("recovery_plan__alternate_without_supplier_id", plan,
     lambda d: d["options"][0]["proposed_action"].update(change={"qty": 4000}), "required")
+bad("recovery_plan__split_order_without_qty", all_types,
+    lambda d: d["options"][1]["proposed_action"]["change"].pop("qty"), "required")
+bad("recovery_plan__transfer_without_to_location", all_types,
+    lambda d: d["options"][2]["proposed_action"]["change"].pop("to_location_id"), "required")
+bad("recovery_plan__revised_schedule_without_expected_date", all_types,
+    lambda d: d["options"][3]["proposed_action"]["change"].pop("expected_date"), "required")
+bad("agent_input__bad_po_expected_date", inp,
+    lambda d: d["snapshot"]["purchase_orders"][0].update(expected_date="03-12-2026"), "pattern")
 bad("agent_input__bad_correlation_id", inp, lambda d: d.update(correlation_id="not-a-uuid"), "pattern")
 bad("agent_input__analyst_with_risk_analysis", inp, lambda d: d.update(risk_analysis=risk), "not")
-(root / "expected_errors.json").write_text(json.dumps(EXPECTED, indent=2, sort_keys=True) + chr(10), encoding="utf-8")
+(root / "expected_errors.json").write_text(json.dumps(EXPECTED, indent=2, sort_keys=True) + chr(10), encoding="utf-8", newline=chr(10))
 print("ok", len(EXPECTED))

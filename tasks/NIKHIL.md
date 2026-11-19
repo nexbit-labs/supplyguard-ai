@@ -9,12 +9,12 @@
 
 ## Handoff
 <!-- Overwrite this block at the end of EVERY session (run /handoff). Newest state only; history goes to progress/SESSION_LOG.md -->
-- **Last updated:** 2026-11-19 (N-03 implemented, in review)
-- **Current task:** N-03 (N-01, N-02 also in review)
-- **Branch:** `nikhil/N-03-mock-erp`
-- **Where I left off:** FastAPI mock ERP in `mock-erp/app/` (store.py rules, main.py routes), 46 tests, Docker image builds and runs (non-root, healthcheck). Reviewer (opus) findings fixed. Not yet run via `docker compose` - the compose file is Uday's.
-- **Next step:** Send Uday the compose snippet + "Open items" in `mock-erp/README.md` (needed for U-07 by 25 Nov and U-10: same execution_id as Idempotency-Key on retry, X-Tenant-ID on PATCH, don't PATCH INVENTORY_TRANSFER); raise S-01 proposals. N-01 and N-02 are auto-merged into collaboration; N-03 auto-merges on this push. Next own task N-04 waits on U-03.
-- **Blockers:** acceptance "Runs via docker compose up mock-erp" needs Uday's docker-compose.yml; S-01 ratification for N-01/N-02/N-03 contract additions.
+- **Last updated:** 2026-11-19 (autopilot: N-01 reviewer follow-ups fixed; autopilot stopped on request)
+- **Current task:** N-01 follow-ups (N-01, N-02, N-03 in review)
+- **Branch:** `nikhil/N-01-agent-schemas`
+- **Where I left off:** N-01 reviewer follow-ups 1-5 done in `ai/` (snapshot PO header `expected_date`, full S-01 proposal list + tenant rule in `ai/README.md`, `recovery_plan__all_option_types` + 4 new invalid fixtures, fixture inventory = `data/seed/`, `bundled_schema` docstring); second reviewer APPROVE, `ai/tests` 93 passed. N-03 compose snippet / open items still to send to Uday.
+- **Next step:** Raise the `ai/README.md` and `data/README.md` "Proposed for S-01" lists in the S-01 contracts call; send Uday the mock-erp compose snippet. N-04 starts when U-03 lands, N-05 when U-01 lands (restart `/loop /autopilot nikhil` to pick them up automatically).
+- **Blockers:** N-04 waits on U-03 (uday, todo); N-05 waits on U-01 (uday, todo); S-01 ratification for N-01/N-02/N-03 contract additions; N-03 compose box needs Uday's docker-compose.yml.
 ---
 
 ### N-01: Agent I/O JSON schemas + fixtures
@@ -28,7 +28,7 @@
   - [x] Required `missing_data` / `assumptions` / `evidence` fields enforced
   - [x] Invalid fixtures fail validation in tests
 - **Done in:** -
-- **Notes:** CONTRACTS section 6 examples validate and keys match (test parses CONTRACTS.md). Additions beyond the contract are listed in `ai/README.md` 'Proposed for S-01' - first box ticks once S-01 ratifies them. Fact-checking evidence against the snapshot is N-07. Merged to collaboration 2026-11-19 (reviewer APPROVE, 82 tests). Reviewer follow-ups before S-01: (1) MAJOR contract example cites PO header `expected_date` but snapshot POs only have line `due_date` - add to 'Proposed for S-01' and pick one; (2) list every tightening (risk_level enum, score 0-100, rank>=1, minItems, ID regexes, non-blank strings, per-option_type change fields) in README proposals; (3) add valid+invalid fixtures for INVENTORY_TRANSFER, SPLIT_ORDER, REVISED_SCHEDULE without expected_date; (4) soften `bundled_schema` docstring (structured outputs may not accept if/then/pattern); (5) README note: N-07/N-08 take tenant from the stored case, not the payload.
+- **Notes:** CONTRACTS section 6 examples validate and keys match (test parses CONTRACTS.md). Additions beyond the contract are listed in `ai/README.md` 'Proposed for S-01' - first box ticks once S-01 ratifies them. Fact-checking evidence against the snapshot is N-07. Merged to collaboration 2026-11-19 (reviewer APPROVE, 82 tests). Reviewer follow-ups before S-01 done 2026-11-19 (reviewer APPROVE, 93 tests): PO header `expected_date` added to the snapshot (optional, proposed for CONTRACTS s5); full tightening list + tenant rule in `ai/README.md`; all-option-types valid fixture + 4 new invalid fixtures; fixture inventory aligned to `data/seed/`; `bundled_schema` docstring softened.
 
 ### N-02: Synthetic demo dataset
 - **Status:** review
