@@ -158,3 +158,12 @@ Template:
 - Next: members restart Claude Code and run /resume <name>
 - Blockers: none
 - Models used: advisor opus
+
+## 2026-11-19 16:00 - roop - R-03
+- Branch: roop/R-03-overview-suppliers @ 01204b1
+- Did: Built Executive Overview (KPI tiles, trend charts), Supplier list (URL filters, risk badges, pagination), Supplier detail (KPIs, disruption history, 404) on MSW mocks via 3 visible parallel sessions on nested branches; advisor merged them.
+- Tests: frontend lint/typecheck PASS, 13 files / 96 tests PASS, build PASS
+- Status now: in-progress (real-data acceptance waits on R-02)
+- Next: polish nits; R-02 when U-03/U-04 land
+- Blockers: Uday U-03/U-04
+- Models used: advisor opus; 3 sonnet/medium sessions, test-runner haiku, reviewer-lite sonnet
