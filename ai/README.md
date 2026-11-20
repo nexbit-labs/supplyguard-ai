@@ -13,7 +13,9 @@ Owner: **Nikhil**. Think of this folder as the data contract for the agent "feed
 | `fixtures/invalid/` | Each file = a valid fixture with exactly one defect |
 | `fixtures/expected_errors.json` | Invalid case -> the one jsonschema keyword it must fail on |
 | `fixtures/generate_fixtures.py` | Regenerates all fixtures (`python ai/fixtures/generate_fixtures.py` from repo root). Edit this, not the JSON |
-| `prompts/` | (N-05/N-06) versioned agent instructions mirrored from Agentstudio |
+| `eval/build_agent_input.py` | (N-05) builds a schema-valid `agent_input` from `data/seed` + `data/scenarios` (impact provisional until N-04) |
+| `eval/grade.py` | (N-05) grades an agent output against its input: evidence resolves, no unsupported numbers, flags reported, adversarial cases |
+| agent definitions | live in `boomi/agents/<agent>/` (instructions, config, tools, eval cases) |
 
 Fixture naming: `<schema>__<case>.json`.
 

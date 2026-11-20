@@ -1,0 +1,40 @@
+{
+  "risk_case_id": "RC-000045",
+  "risk_level": "CRITICAL",
+  "risk_score": 90,
+  "summary": "SUP-1040 (Zenith Electronics Pvt Ltd) has a 96-hour factory outage. Open PO-1015 (1200 units of ITM-540, due 2026-12-03) is affected, with INR 474384.00 exposed. DC-PUNE stock covers 0.5 days, so a shortage is expected. No qualified alternate supplier for ITM-540 exists in the ERP data, and SUP-1040's capacity and restart date are unknown.",
+  "affected_entities": [
+    {"type": "SUPPLIER", "id": "SUP-1040"},
+    {"type": "PO", "id": "PO-1015"},
+    {"type": "ITEM", "id": "ITM-540"},
+    {"type": "LOCATION", "id": "DC-PUNE"}
+  ],
+  "evidence": [
+    {"source": "EVENT", "entity": "EVT-000905", "field": "expected_duration_hours", "value": 96},
+    {"source": "ERP", "entity": "PO-1015", "item_id": "ITM-540", "field": "qty", "value": 1200},
+    {"source": "ERP", "entity": "PO-1015", "item_id": "ITM-540", "field": "due_date", "value": "2026-12-03"},
+    {"source": "ERP", "entity": "ITM-540", "location_id": "DC-PUNE", "field": "on_hand", "value": 150},
+    {"source": "ERP", "entity": "SUP-1040", "field": "capacity_per_week", "value": null},
+    {"source": "IMPACT", "entity": "IMPACT", "field": "total_exposure", "value": "474384.00"},
+    {"source": "IMPACT", "entity": "PO-1015", "field": "estimated_delay_days", "value": 4},
+    {"source": "IMPACT", "entity": "PO-1015", "field": "inventory_coverage_days", "value": 0.5},
+    {"source": "IMPACT", "entity": "PO-1015", "field": "shortage", "value": true}
+  ],
+  "facts": [
+    "The event reports a 96-hour factory outage at SUP-1040.",
+    "PO-1015 orders 1200 units of ITM-540, due 2026-12-03.",
+    "DC-PUNE is the only location holding ITM-540, with 150 units on hand.",
+    "The snapshot contains no alternate supplier for ITM-540."
+  ],
+  "estimates": [
+    {"statement": "PO-1015 arrives 4 days late.", "basis": "impact.estimated_delay_days for PO-1015"},
+    {"statement": "DC-PUNE runs out of ITM-540 before PO-1015 can arrive.", "basis": "impact.inventory_coverage_days is less than the delay; impact.shortage is true"}
+  ],
+  "assumptions": ["The outage duration reported in the event is accurate."],
+  "missing_data": [
+    "SUP-1040 capacity not provided",
+    "no qualified alternate supplier for ITM-540",
+    "SUP-1040 restart date not provided"
+  ],
+  "confidence": "MEDIUM"
+}

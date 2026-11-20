@@ -9,12 +9,12 @@
 
 ## Handoff
 <!-- Overwrite this block at the end of EVERY session (run /handoff). Newest state only; history goes to progress/SESSION_LOG.md -->
-- **Last updated:** 2026-11-19 (autopilot: N-01 reviewer follow-ups fixed; autopilot stopped on request)
-- **Current task:** N-01 follow-ups (N-01, N-02, N-03 in review)
-- **Branch:** `nikhil/N-01-agent-schemas`
-- **Where I left off:** N-01 reviewer follow-ups 1-5 done in `ai/` (snapshot PO header `expected_date`, full S-01 proposal list + tenant rule in `ai/README.md`, `recovery_plan__all_option_types` + 4 new invalid fixtures, fixture inventory = `data/seed/`, `bundled_schema` docstring); second reviewer APPROVE, `ai/tests` 93 passed. N-03 compose snippet / open items still to send to Uday.
-- **Next step:** Raise the `ai/README.md` and `data/README.md` "Proposed for S-01" lists in the S-01 contracts call; send Uday the mock-erp compose snippet. N-04 starts when U-03 lands, N-05 when U-01 lands (restart `/loop /autopilot nikhil` to pick them up automatically).
-- **Blockers:** N-04 waits on U-03 (uday, todo); N-05 waits on U-01 (uday, todo); S-01 ratification for N-01/N-02/N-03 contract additions; N-03 compose box needs Uday's docker-compose.yml.
+- **Last updated:** 2026-11-20 (N-06 acceptance runs done, agent deployed, in review)
+- **Current task:** N-06 (review; N-05 in review)
+- **Branch:** `nikhil/N-06-recovery-agent`
+- **Where I left off:** Agent "SG Recovery Planner" (id b5f2f51a-0b4e-41e6-998d-e04031f2a9d0) built in Agentstudio with prompt v1.3.0 and deployed 2026-11-20 (package 1.0, deployment 1142f95b-7b4a-466f-a895-89a2140068ac, Agent Garden Production, active). Six live v1.3.0 runs graded (DEMO 30/31, TC05 31/31, ADV-01 35/35, ADV-02 33/33, ADV-03 34/34, ADV-04 33/34). Known issue: `assumptions_qualitative` on SUP-2002 (capacity unknown) in DEMO and ADV-04.
+- **Next step:** optional prompt tweak adding an assumption template for capacity-unknown suppliers (the agent is already deployed, so a prompt change needs a new deploy). Calling it from Integration needs an Agent Control Tower account and an Agent Step (Uday's `boomi/processes/`). Then N-04 / N-07 per dependencies.
+- **Blockers:** U-03 for N-04; U-07 tools not built (agents have no tools).
 ---
 
 ### N-01: Agent I/O JSON schemas + fixtures
@@ -72,30 +72,30 @@
 - **Notes:** -
 
 ### N-05: Supplier Risk Analyst agent (Agentstudio)
-- **Status:** todo
+- **Status:** review
 - **Sprint:** S2 (1-4 Dec) | **Est:** 2d | **Depends:** N-01, U-01
 - **Branch:** `nikhil/N-05-risk-analyst`
 - **Model hint:** opus / high (prompt + guardrails); use the boomi-agentstudio skill if installed
 - **Deliverables:** agent in Agentstudio with instructions, tools (ERP lookups via Uday's U-07 processes), guardrails: no invented capacity/price/dates, separate facts vs estimates, must fill `missing_data`. Prompt + config versioned in `boomi/agents/risk_analyst/`.
 - **Acceptance:**
-  - [ ] Output for the demo scenario validates against `risk_analysis.schema.json`
-  - [ ] Every claim has an `evidence` entry pointing to snapshot data
-  - [ ] 5 adversarial prompts (asking it to guess capacity etc.) -> it reports missing data instead
+  - [x] Output for the demo scenario validates against `risk_analysis.schema.json`
+  - [x] Every claim has an `evidence` entry pointing to snapshot data
+  - [x] 5 adversarial prompts (asking it to guess capacity etc.) -> it reports missing data instead
 - **Done in:** -
-- **Notes:** -
+- **Notes:** Agent in Agentstudio (prompt v1.3.0, not deployed). Clean single-version acceptance set run 2026-11-20: DEMO passes every check; ADV-01..05 pass every `case_*` and generic check (see `boomi/agents/risk_analyst/README.md`, `eval/runs/README.md`). Tools pending U-07 (agent runs on the input snapshot only). Impact in eval inputs is provisional until N-04. Open for human review / next prompt version: ADV-01/03/04/05 add a false 'event description contained instructions' line (rule 5); ADV-03/05 assumption 'supplier will resume production immediately after the expected duration' is restart-leaning. Known limit: `disruption_history` entries cannot be cited as evidence yet.
 
 ### N-06: Recovery Planning agent (Agentstudio)
-- **Status:** todo
+- **Status:** review
 - **Sprint:** S2 (3-6 Dec) | **Est:** 2d | **Depends:** N-01, N-05
 - **Branch:** `nikhil/N-06-recovery-agent`
 - **Model hint:** opus / high
 - **Deliverables:** agent comparing ALTERNATE_SUPPLIER, INVENTORY_TRANSFER, REVISED_SCHEDULE, SPLIT_ORDER; ranks by urgency, inventory, qualification, cost, priority; config in `boomi/agents/recovery_planner/`.
 - **Acceptance:**
-  - [ ] Demo scenario -> at least 2 ranked viable options (AC-04)
-  - [ ] TC-05 scenario -> `options: []` + `no_viable_option_reason`
-  - [ ] Output validates against `recovery_plan.schema.json`
+  - [x] Demo scenario -> at least 2 ranked viable options (AC-04)
+  - [x] TC-05 scenario -> `options: []` + `no_viable_option_reason`
+  - [x] Output validates against `recovery_plan.schema.json`
 - **Done in:** -
-- **Notes:** -
+- **Notes:** Agent "SG Recovery Planner" (id b5f2f51a-0b4e-41e6-998d-e04031f2a9d0) built in Agentstudio as a saved draft, not deployed, prompt v1.3.0. Six live v1.3.0 runs graded 2026-11-20: DEMO 30/31, TC05 31/31, ADV-01 35/35, ADV-02 33/33, ADV-03 34/34, ADV-04 33/34. Known issue (open): `assumptions_qualitative` fails in DEMO and RP-ADV-04 - the SUP-2002 option (capacity unknown) assumes "sufficient capacity available". Deployed in Agentstudio 2026-11-20: package "SG Recovery Planner" 1.0 (94004c6f-f9c7-4804-b5cc-fa8e8b4236ff), deployment 1142f95b-7b4a-466f-a895-89a2140068ac, environment Agent Garden Production, Boomi reports active. Not yet callable from Integration (needs an Agent Control Tower account and an Agent Step, Uday's stream). Optional next: a prompt assumption template for capacity-unknown suppliers. See `boomi/agents/recovery_planner/eval/runs/README.md`.
 
 ### N-07: Agent output validator + persistence
 - **Status:** todo

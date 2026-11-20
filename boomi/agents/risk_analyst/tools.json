@@ -1,0 +1,53 @@
+{
+  "description": "ERP lookup tools for the Risk Analyst. In Agentstudio each is an Integration tool backed by Uday's U-07 process; in the Claude fallback (N-09) each calls the mock ERP directly. All are read-only and tenant-scoped (Boomi sends X-Tenant-ID from the case, never from the model).",
+  "tools": [
+    {
+      "name": "get_supplier",
+      "description": "Supplier master record (name, location, status, capacity_per_week, performance, disruption history) for one supplier id.",
+      "boomi_process": "SG_Get_Supplier",
+      "mock_erp": "GET /erp/suppliers/{supplier_id}",
+      "input_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["supplier_id"],
+        "properties": {"supplier_id": {"type": "string", "pattern": "^SUP-[0-9]+$"}}
+      }
+    },
+    {
+      "name": "get_open_purchase_orders",
+      "description": "All OPEN purchase orders for a supplier, with lines (item_id, qty, due_date, unit_price).",
+      "boomi_process": "SG_Get_Open_POs_By_Supplier",
+      "mock_erp": "GET /erp/purchase-orders?supplier_id={supplier_id}&status=OPEN",
+      "input_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["supplier_id"],
+        "properties": {"supplier_id": {"type": "string", "pattern": "^SUP-[0-9]+$"}}
+      }
+    },
+    {
+      "name": "get_inventory",
+      "description": "On-hand, reserved, safety stock and daily demand per location for one item.",
+      "boomi_process": "SG_Get_Inventory",
+      "mock_erp": "GET /erp/inventory?item_id={item_id}",
+      "input_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["item_id"],
+        "properties": {"item_id": {"type": "string", "minLength": 1}}
+      }
+    },
+    {
+      "name": "get_alternate_suppliers",
+      "description": "Alternate suppliers for one item: qualified flag, lead_time_days, unit_price, capacity (units/week; null = unknown).",
+      "boomi_process": "SG_Get_Alternate_Suppliers",
+      "mock_erp": "GET /erp/alternate-suppliers?item_id={item_id}",
+      "input_schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["item_id"],
+        "properties": {"item_id": {"type": "string", "minLength": 1}}
+      }
+    }
+  ]
+}
