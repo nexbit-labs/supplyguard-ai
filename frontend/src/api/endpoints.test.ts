@@ -69,9 +69,10 @@ describe('endpoints (mock backend)', () => {
   });
 
   it('simulate requires ADMIN', async () => {
-    const r = await simulateDisruption('factory-outage');
+    const r = await simulateDisruption('shipment_delay');
     expect(r.status).toBe('RECEIVED');
+    await expect(simulateDisruption('no_such_scenario')).rejects.toMatchObject({ code: 'VALIDATION_ERROR', status: 400 });
     await login('manager', 'demo123');
-    await expect(simulateDisruption('factory-outage')).rejects.toMatchObject({ code: 'FORBIDDEN' });
+    await expect(simulateDisruption('shipment_delay')).rejects.toMatchObject({ code: 'FORBIDDEN' });
   });
 });

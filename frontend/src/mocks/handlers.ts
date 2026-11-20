@@ -1,6 +1,8 @@
 import { http, HttpResponse, type HttpHandler } from 'msw';
 import type { ErrorCode, Paginated } from '@/api/types';
+import { SCENARIOS } from './scenarios';
 import {
+  addSimulatedCase,
   dashboardSummary,
   meFor,
   riskCaseDetail,
@@ -209,9 +211,16 @@ export const handlers: HttpHandler[] = [
           scenario: ['This field is required.'],
         });
       }
+      const scenario = SCENARIOS.find((s) => s.name === body.scenario);
+      if (!scenario) {
+        return errorResponse(400, 'VALIDATION_ERROR', `Unknown scenario "${body.scenario}".`, request, {
+          scenario: [`Choose one of: ${SCENARIOS.map((s) => s.name).join(', ')}.`],
+        });
+      }
+      const { eventId } = addSimulatedCase(scenario);
       return HttpResponse.json(
         {
-          event_id: `EVT-${String(Date.now()).slice(-6)}`,
+          event_id: eventId,
           correlation_id: request.headers.get('X-Correlation-ID') ?? crypto.randomUUID(),
           status: 'RECEIVED',
         },
