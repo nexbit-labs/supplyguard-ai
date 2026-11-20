@@ -12,6 +12,7 @@ import type {
   Supplier,
   SupplierDetail,
 } from '@/api/types';
+import type { SimulateScenarioOption } from './scenarios';
 
 export const TENANT = { id: 'TEN-ACME', name: 'Acme Manufacturing' };
 export const DEMO_PASSWORD = 'demo123';
@@ -282,6 +283,8 @@ export const riskCaseDetail45: RiskCaseDetail = {
 
 /** Detail for any case id: RC-000045 is the full one, others are derived stubs. */
 export function riskCaseDetail(id: string): RiskCaseDetail | undefined {
+  const simulated = simulatedDetails.get(id);
+  if (simulated) return simulated;
   if (id === 'RC-000045') return riskCaseDetail45;
   const item = riskCaseList.find((c) => c.id === id);
   if (!item) return undefined;
@@ -304,4 +307,82 @@ export function riskCaseDetail(id: string): RiskCaseDetail | undefined {
     executions: [],
     timeline: [{ at: item.created_at, actor: 'system', action: 'CASE_CREATED', detail: item.title }],
   };
+}
+
+// ---- Stateful simulate-disruption (R-04) ----
+const initialCases = [...riskCaseList];
+const simulatedDetails = new Map<string, RiskCaseDetail>();
+const simTimers = new Set<ReturnType<typeof setTimeout>>();
+let nextCaseNumber = 46;
+
+export const ANALYZING_DELAY_MS = 1500;
+
+/** Adds a RECEIVED case (newest first) for the scenario and moves it to ANALYZING shortly after. */
+export function addSimulatedCase(scenario: SimulateScenarioOption): { caseId: string; eventId: string } {
+  const n = nextCaseNumber++;
+  const id = `RC-${String(n).padStart(6, '0')}`;
+  const eventId = `EVT-${String(900000 + n)}`;
+  const now = new Date().toISOString();
+  const supplier = suppliers.find((s) => s.id === scenario.supplier_id) ?? suppliers[0];
+  const item: RiskCaseListItem = {
+    id,
+    status: 'RECEIVED',
+    severity: scenario.severity,
+    supplier_id: supplier.id,
+    supplier_name: supplier.name,
+    event_type: scenario.event_type,
+    title: `${scenario.label}`,
+    risk_score: 0,
+    affected_po_count: scenario.affected_po_count,
+    exposure: inr(scenario.exposure),
+    created_at: now,
+    updated_at: now,
+  };
+  riskCaseList.unshift(item);
+  const detail: RiskCaseDetail = {
+    ...item,
+    event: {
+      ...event45,
+      event_id: eventId,
+      supplier_id: supplier.id,
+      event_type: scenario.event_type,
+      severity: scenario.severity,
+      event_time: now,
+      description: item.title,
+    },
+    affected_pos: [],
+    analysis: null,
+    recommendations: [],
+    no_viable_option_reason: null,
+    approvals: [],
+    executions: [],
+    timeline: [{ at: now, actor: 'system', action: 'RECEIVED', detail: `Event ${eventId} received` }],
+  };
+  simulatedDetails.set(id, detail);
+  const timer = setTimeout(() => {
+    simTimers.delete(timer);
+    const at = new Date().toISOString();
+    item.status = 'ANALYZING';
+    item.updated_at = at;
+    const current = simulatedDetails.get(id);
+    if (current) {
+      simulatedDetails.set(id, {
+        ...current,
+        status: 'ANALYZING',
+        updated_at: at,
+        timeline: [...current.timeline, { at, actor: 'system', action: 'ANALYZING', detail: 'Analysis started' }],
+      });
+    }
+  }, ANALYZING_DELAY_MS);
+  simTimers.add(timer);
+  return { caseId: id, eventId };
+}
+
+/** Restores the fixture list and drops simulated cases/timers (called after every test). */
+export function resetMockState(): void {
+  simTimers.forEach(clearTimeout);
+  simTimers.clear();
+  simulatedDetails.clear();
+  riskCaseList.splice(0, riskCaseList.length, ...initialCases.map((c) => ({ ...c })));
+  nextCaseNumber = 46;
 }

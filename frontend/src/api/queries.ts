@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   getDashboardSummary,
   getMe,
@@ -35,8 +35,20 @@ export const useSupplier = (id: string | undefined) =>
 export const useDashboardSummary = () =>
   useQuery({ queryKey: queryKeys.dashboard, queryFn: getDashboardSummary });
 
-export const useRiskCases = (filters: RiskCaseFilters = {}) =>
-  useQuery({ queryKey: queryKeys.riskCases(filters), queryFn: () => listRiskCases(filters) });
+export interface RiskCasesQueryOptions {
+  /** Poll interval in ms; polling pauses while the tab is hidden. */
+  refetchInterval?: number | false;
+  /** Keep showing the previous page/filter result while the next one loads. */
+  keepPrevious?: boolean;
+}
+
+export const useRiskCases = (filters: RiskCaseFilters = {}, options: RiskCasesQueryOptions = {}) =>
+  useQuery({
+    queryKey: queryKeys.riskCases(filters),
+    queryFn: () => listRiskCases(filters),
+    refetchInterval: options.refetchInterval,
+    placeholderData: options.keepPrevious ? keepPreviousData : undefined,
+  });
 
 export const useRiskCase = (id: string | undefined) =>
   useQuery({
