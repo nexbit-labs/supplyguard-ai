@@ -96,6 +96,15 @@ Template:
 - Blockers: Uday U-02/U-03/U-04; backend asks in ROOP.md Handoff (refresh lifetime/rotation, /me shape)
 - Models used: advisor opus; implementer sonnet x5, reviewer opus x2, 2 visible sonnet sessions
 
+## 2026-11-19 - nikhil - N-05 (Boomi-free part)
+- Branch: nikhil/N-05-risk-analyst
+- Did: Supplier Risk Analyst prompt v1.1.0 + agent.json + tools.json (4 ERP lookups -> U-07 processes); 5 adversarial cases; reference answers (demo, TC-05); ai/eval/build_agent_input.py (schema-valid inputs from seed + scenarios, provisional impact until N-04) and ai/eval/grade.py (evidence resolution, claim-to-evidence link, dates, numeric support, shortage per PO, flags, case patterns). Reviewer (opus) found grader bypasses (dates, uncited claims, assumptions, UUID digits) and false failures - all fixed with regression tests.
+- Tests: `python -m pytest ai/tests -q` -> 133 passed
+- Status now: in-progress (acceptance needs real agent runs)
+- Next: U-01 -> create agent (Agentstudio or Claude fallback), grade demo + ADV-01..05
+- Blockers: U-01 not pushed; N-04 waits on U-03
+- Models used: advisor opus; reviewer (opus, general-purpose agent)
+
 ## 2026-11-19 - uday - U-02
 - Branch: uday/U-02-backend-scaffold
 - Did: Backend scaffold (Django 5 + DRF + JWT + OpenAPI, 8 app shells, /api/health, compose with Postgres 16). Review follow-ups: contract error body handler (CONTRACTS s1), custom `accounts.User` + 0001 migration, SECRET_KEY guard, compose env_file + dev runserver, non-root image.
@@ -167,3 +176,39 @@ Template:
 - Next: polish nits; R-02 when U-03/U-04 land
 - Blockers: Uday U-03/U-04
 - Models used: advisor opus; 3 sonnet/medium sessions, test-runner haiku, reviewer-lite sonnet
+
+## 2026-11-20 - nikhil - N-05
+- Branch: nikhil/N-05-risk-analyst
+- Did: Risk Analyst agent live in Agentstudio on prompt v1.3.0; 7 real runs saved and graded (DEMO v1.2.0 all pass, ADV-01..05 resisted on case_* checks); grader hardened after an Opus review (event-description digits, clock numbers, input texts passed explicitly); README/agent.json/runs index updated.
+- Tests: ai/tests 158 passed
+- Status now: in-progress (acceptance needs single-version v1.3.0 re-run)
+- Next: re-run DEMO + ADV-01..05 on v1.3.0 in Agentstudio, grade, then set N-05 to review
+- Blockers: U-07 tools not built (agent has no tools); U-03 for N-04
+- Models used: advisor opus; subagents/sessions sonnet + opus reviewer
+
+## 2026-11-20 - nikhil - N-05 (acceptance run)
+- Branch: nikhil/N-05-risk-analyst
+- Did: clean single-version acceptance set on prompt v1.3.0: DEMO + ADV-01..05 saved (replies verbatim from the Agentstudio Test Agent), graded - all checks pass incl. every `case_*`; pinning tests added; README, runs index, TEST_LOG updated; N-05 set to review.
+- Tests: ai/tests 173 passed
+- Status now: review
+- Next: prompt gap (false 'event description contained instructions' line in ADV-01/03/04/05; restart-leaning 'resume immediately' assumption in ADV-03/05); N-04
+- Blockers: U-07 tools not built; U-03 for N-04
+- Models used: advisor opus; run/doc session sonnet
+
+## 2026-11-20 - nikhil - N-06
+- Branch: nikhil/N-06-recovery-agent
+- Did: six live v1.3.0 runs (DEMO, TC05, RP-ADV-01..04) saved to eval/runs and re-graded: DEMO 30/31, TC05 31/31, ADV-01 35/35, ADV-02 33/33, ADV-03 34/34, ADV-04 33/34 (the one fail in DEMO and ADV-04 is assumptions_qualitative on SUP-2002, capacity unknown); agent README, runs index, agent.json, TEST_LOG and NIKHIL.md updated; N-06 set to review.
+- Tests: ai/tests 279 passed; run_checks.py all suites PASS (backend deps installed from backend/requirements-dev.txt)
+- Status now: review
+- Next: optional prompt tweak for capacity-unknown suppliers; deploy only after the team decides
+- Blockers: U-03 for N-04; U-07 tools not built
+- Models used: run/doc session haiku (no advisor)
+
+## 2026-11-20 - nikhil - N-06 deployment record
+- Branch: nikhil/N-06-recovery-agent
+- Did: agent "SG Recovery Planner" (b5f2f51a-0b4e-41e6-998d-e04031f2a9d0, prompt v1.3.0) deployed in Agentstudio via Review > Create > Package & Deploy: package "SG Recovery Planner" 1.0 (94004c6f-f9c7-4804-b5cc-fa8e8b4236ff), deployment 1142f95b-7b4a-466f-a895-89a2140068ac, environment Agent Garden Production, Boomi reports active. Deployed on Uday's training account with his agreement. Recorded in agent.json, agent README and NIKHIL.md. Not done: Agent Control Tower account and an Agent Step in an Integration process (Uday's stream).
+- Tests: ai/tests 279 passed; run_checks.py all suites PASS
+- Status now: review
+- Next: optional prompt tweak for capacity-unknown suppliers (needs a new deploy); Agent Control Tower + Agent Step with Uday; N-04 / N-07
+- Blockers: U-03 for N-04; U-07 tools not built; Agent Control Tower account for Integration use
+- Models used: deploy and doc session haiku (no advisor)

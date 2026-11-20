@@ -1,0 +1,52 @@
+{
+  "risk_case_id": "RC-000045",
+  "risk_level": "CRITICAL",
+  "risk_score": 90,
+  "summary": "SUP-1008 (Shakti Components Pvt Ltd) has a 48-hour factory outage starting 2026-12-02. Two open POs for ITM-501 fall due before it ends - PO-1001 (4000 units, due 2026-12-03) and PO-1002 (2500 units, due 2026-12-04) - with INR 491400.00 exposed. DC-PUNE stock of ITM-501 covers 1.5 days, which is less than the expected delay, so both POs are expected to cause a shortage. SUP-1008's remaining capacity and restart date are unknown.",
+  "affected_entities": [
+    {"type": "SUPPLIER", "id": "SUP-1008"},
+    {"type": "PO", "id": "PO-1001"},
+    {"type": "PO", "id": "PO-1002"},
+    {"type": "ITEM", "id": "ITM-501"},
+    {"type": "LOCATION", "id": "DC-PUNE"}
+  ],
+  "evidence": [
+    {"source": "EVENT", "entity": "EVT-000123", "field": "expected_duration_hours", "value": 48},
+    {"source": "ERP", "entity": "PO-1001", "item_id": "ITM-501", "field": "due_date", "value": "2026-12-03"},
+    {"source": "ERP", "entity": "PO-1001", "item_id": "ITM-501", "field": "qty", "value": 4000},
+    {"source": "ERP", "entity": "PO-1002", "item_id": "ITM-501", "field": "due_date", "value": "2026-12-04"},
+    {"source": "ERP", "entity": "PO-1002", "item_id": "ITM-501", "field": "qty", "value": 2500},
+    {"source": "ERP", "entity": "ITM-501", "location_id": "DC-PUNE", "field": "on_hand", "value": 1100},
+    {"source": "ERP", "entity": "SUP-1008", "field": "capacity_per_week", "value": null},
+    {"source": "ERP", "entity": "SUP-2002", "item_id": "ITM-501", "field": "capacity", "value": null},
+    {"source": "IMPACT", "entity": "IMPACT", "field": "risk_score", "value": 90},
+    {"source": "IMPACT", "entity": "IMPACT", "field": "total_exposure", "value": "491400.00"},
+    {"source": "IMPACT", "entity": "PO-1001", "field": "estimated_delay_days", "value": 2},
+    {"source": "IMPACT", "entity": "PO-1001", "field": "inventory_coverage_days", "value": 1.5},
+    {"source": "IMPACT", "entity": "PO-1001", "field": "shortage", "value": true},
+    {"source": "IMPACT", "entity": "PO-1002", "field": "estimated_delay_days", "value": 1},
+    {"source": "IMPACT", "entity": "PO-1002", "field": "shortage", "value": true}
+  ],
+  "facts": [
+    "The event reports a 48-hour factory outage at SUP-1008.",
+    "PO-1001 orders 4000 units of ITM-501, due 2026-12-03.",
+    "PO-1002 orders 2500 units of ITM-501, due 2026-12-04.",
+    "DC-PUNE holds 1100 units of ITM-501 on hand.",
+    "Total exposure on the affected POs is INR 491400.00."
+  ],
+  "estimates": [
+    {"statement": "PO-1001 arrives 2 days late.", "basis": "impact.estimated_delay_days for PO-1001, derived from the outage duration"},
+    {"statement": "DC-PUNE runs short of ITM-501 before PO-1001 can arrive.", "basis": "impact.inventory_coverage_days for PO-1001 is less than its delay; impact.shortage is true"},
+    {"statement": "PO-1002 arrives 1 day late into a stock that PO-1001's gap has already used up, so it adds to the shortage.", "basis": "impact.shortage is true for PO-1002"}
+  ],
+  "assumptions": [
+    "The outage duration reported in the event is accurate.",
+    "Open POs due after the outage ends are not delayed by it."
+  ],
+  "missing_data": [
+    "SUP-1008 capacity not provided",
+    "SUP-2002 capacity for ITM-501 unknown",
+    "SUP-1008 restart date not provided"
+  ],
+  "confidence": "MEDIUM"
+}

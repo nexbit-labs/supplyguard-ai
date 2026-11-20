@@ -7,7 +7,7 @@
 | Member | Done | In progress | Review | Blocked | Pending | Overdue | % | Next |
 |---|---|---|---|---|---|---|---|---|
 | Roop | 1 | 0 | 3 | 0 | 8 | 0 | 8% | - |
-| Nikhil | 0 | 0 | 3 | 0 | 11 | 0 | 0% | - |
+| Nikhil | 0 | 0 | 5 | 0 | 9 | 0 | 0% | - |
 | Uday | 1 | 0 | 0 | 0 | 11 | 0 | 8% | U-01 |
 | Shared | 0 | 1 | 0 | 0 | 4 | 0 | 0% | S-01 |
 
@@ -32,8 +32,8 @@
 | U-06 | Event intake + Boomi client (Django `apps/integrations`) | Uday | S1 (26-30 Nov) | todo | 0/5 | - |
 | U-07 | Boomi ERP read processes + canonical profiles | Uday | S1 (25-30 Nov) | todo | 0/3 | - |
 | U-12 | Local + hosted deployment | Uday | S1 tunnel (by 28 Nov), S4 hosted (15-20 Dec) | todo | 0/3 | - |
-| N-05 | Supplier Risk Analyst agent (Agentstudio) | Nikhil | S2 (1-4 Dec) | todo | 0/3 | - |
-| N-06 | Recovery Planning agent (Agentstudio) | Nikhil | S2 (3-6 Dec) | todo | 0/3 | - |
+| N-05 | Supplier Risk Analyst agent (Agentstudio) | Nikhil | S2 (1-4 Dec) | review | 3/3 | - |
+| N-06 | Recovery Planning agent (Agentstudio) | Nikhil | S2 (3-6 Dec) | review | 3/3 | - |
 | N-07 | Agent output validator + persistence | Nikhil | S2 (4-7 Dec) | todo | 0/3 | - |
 | N-08 | Boomi correlation + impact orchestration process | Nikhil | S2 (3-7 Dec) | todo | 0/2 | - |
 | N-09 | Agent invocation wiring + offline fallback | Nikhil | S2-S3 (6-10 Dec) | todo | 0/2 | - |
@@ -70,12 +70,12 @@
 - **Blockers:** R-02 waits on Uday U-03/U-04. R-09 needs team decision: `ci-ok` required on `main` only. Uday: pin ruff, `ruff format backend`, short refresh lifetime + rotation off, `/me` shape provisional. Team: drop `[skip ci]` from bot commits.
 
 ### Nikhil
-- **Last updated:** 2026-11-19 (autopilot: N-01 reviewer follow-ups fixed; autopilot stopped on request)
-- **Current task:** N-01 follow-ups (N-01, N-02, N-03 in review)
-- **Branch:** `nikhil/N-01-agent-schemas`
-- **Where I left off:** N-01 reviewer follow-ups 1-5 done in `ai/` (snapshot PO header `expected_date`, full S-01 proposal list + tenant rule in `ai/README.md`, `recovery_plan__all_option_types` + 4 new invalid fixtures, fixture inventory = `data/seed/`, `bundled_schema` docstring); second reviewer APPROVE, `ai/tests` 93 passed. N-03 compose snippet / open items still to send to Uday.
-- **Next step:** Raise the `ai/README.md` and `data/README.md` "Proposed for S-01" lists in the S-01 contracts call; send Uday the mock-erp compose snippet. N-04 starts when U-03 lands, N-05 when U-01 lands (restart `/loop /autopilot nikhil` to pick them up automatically).
-- **Blockers:** N-04 waits on U-03 (uday, todo); N-05 waits on U-01 (uday, todo); S-01 ratification for N-01/N-02/N-03 contract additions; N-03 compose box needs Uday's docker-compose.yml.
+- **Last updated:** 2026-11-20 (N-06 acceptance runs done, agent deployed, in review)
+- **Current task:** N-06 (review; N-05 in review)
+- **Branch:** `nikhil/N-06-recovery-agent`
+- **Where I left off:** Agent "SG Recovery Planner" (id b5f2f51a-0b4e-41e6-998d-e04031f2a9d0) built in Agentstudio with prompt v1.3.0 and deployed 2026-11-20 (package 1.0, deployment 1142f95b-7b4a-466f-a895-89a2140068ac, Agent Garden Production, active). Six live v1.3.0 runs graded (DEMO 30/31, TC05 31/31, ADV-01 35/35, ADV-02 33/33, ADV-03 34/34, ADV-04 33/34). Known issue: `assumptions_qualitative` on SUP-2002 (capacity unknown) in DEMO and ADV-04.
+- **Next step:** optional prompt tweak adding an assumption template for capacity-unknown suppliers (the agent is already deployed, so a prompt change needs a new deploy). Calling it from Integration needs an Agent Control Tower account and an Agent Step (Uday's `boomi/processes/`). Then N-04 / N-07 per dependencies.
+- **Blockers:** U-03 for N-04; U-07 tools not built (agents have no tools).
 
 ### Uday
 - **Last updated:** 2026-11-19 (U-02 done and merged, review follow-ups applied)
@@ -89,23 +89,23 @@
 
 | Date | Commit | Member | Task | Status | Subject |
 |---|---|---|---|---|---|
+| 2026-11-20 | da4b861 | nikhil | N-06 | review | Merge origin/collaboration into nikhil/N-06-recovery-agent |
+| 2026-11-20 | cd470cf | nikhil | N-06 | review | merge: N-06 Recovery Planning agent (Agentstudio) (auto-merge) |
+| 2026-11-20 | 49192fe | nikhil | N-06 | review | docs(agents): N-06 recovery planner deployed in Agentstudio |
+| 2026-11-20 | d288171 | nikhil | N-06 | review | feat(agents): N-06 recovery planner live v1.3.0 runs, set to review |
+| 2026-11-20 | 0de814d | nikhil | N-06 | in-progress | fix(agents): N-06 recovery planner prompt v1.3.0 text templates |
+| 2026-11-20 | 1709e47 | nikhil | N-06 | in-progress | fix(agents): N-06 recovery planner prompt v1.2.0 + v1.1.0 baseline runs |
+| 2026-11-20 | 52f5e6d | uday | U-01 | blocked | docs(boomi): U-01 - teammates use their own Boomi accounts, no invites |
+| 2026-11-20 | 84d3395 | roop | R-07 | review | chore(ci): re-trigger auto-merge for R-07 |
+| 2026-11-20 | 4693960 | roop | R-07 | review | chore(tasks): R-07 to review - land mock-built screens in collaboration |
 | 2026-11-20 | 58f20e2 | roop | R-04 | review | merge: R-04 Risk Command Center + case detail (auto-merge) |
 | 2026-11-20 | 6332e9b | roop | R-04 | review | chore(tasks): R-04 to review - land mock-built screens in collaboration |
 | 2026-11-20 | 76f38c8 | roop | R-03 | review | merge: R-03 Executive Overview + Supplier Intelligence screens (auto-merge) |
 | 2026-11-20 | 96efb0a | roop | R-03 | review | chore(tasks): R-03 to review - land mock-built screens in collaboration |
+| 2026-11-20 | a76c094 | nikhil | N-06 | in-progress | fix(agents): N-06 grader round 2 after re-review |
+| 2026-11-20 | 36db3ff | nikhil | N-06 | in-progress | fix(agents): N-06 grader + prompt v1.1.0 after Opus review |
+| 2026-11-20 | cd48e18 | nikhil | N-06 | in-progress | feat(agents): N-06 recovery planner design (prompt, schemas config, references, adversarial cases) |
+| 2026-11-20 | b25d951 | nikhil | N-06 | in-progress | feat(agents): N-06 recovery planner grader, RP payloads and tests |
 | 2026-11-20 | 90d5086 | nikhil | N-05 | review | test(agents): clean v1.3.0 acceptance set for N-05, set to review |
 | 2026-11-20 | b1cffba | nikhil | N-05 | in-progress | chore(tasks): handoff N-05 - agent live, re-run pending |
 | 2026-11-20 | 76056e7 | nikhil | N-05 | in-progress | feat(agents): harden grader after review, ADV-05 run, docs |
-| 2026-11-19 | 058e037 | roop | R-11 | in-progress | merge: R-11 --script sub-branch into task branch |
-| 2026-11-19 | 6bf5382 | roop | R-06 | in-progress | merge: R-06 --flow-spec sub-branch into task branch |
-| 2026-11-19 | 06e0a21 | roop | R-05 | in-progress | merge: R-05 --approvals sub-branch into task branch |
-| 2026-11-19 | e38dc81 | roop | R-05 | in-progress | merge: R-05 --recommendations sub-branch into task branch |
-| 2026-11-19 | d86578d | roop | R-08 | in-progress | merge: R-08 --settings sub-branch into task branch |
-| 2026-11-19 | ddfeb93 | roop | R-08 | in-progress | merge: R-08 --audit sub-branch into task branch |
-| 2026-11-19 | 54a6bb0 | roop | R-07 | in-progress | merge: R-07 --simulator sub-branch into task branch |
-| 2026-11-19 | 4a7a066 | roop | R-04 | in-progress | merge: R-04 --inbox sub-branch into task branch |
-| 2026-11-19 | 81e29b1 | roop | R-05 | in-progress | feat(approvals): Approval Center with decision, execution status and retry |
-| 2026-11-19 | cb32f74 | roop | R-07 | in-progress | feat(frontend): What-if simulator chart text alternative, robust timing test |
-| 2026-11-19 | ae15b49 | roop | R-04 | in-progress | refactor(frontend): inbox review nits - 400 on unknown scenario, SCENARIOS in mocks |
-| 2026-11-19 | 2cefce6 | roop | R-05 | in-progress | docs(tasks): mark R-05 in-progress with piece plan |
-| 2026-11-19 | 4b451a3 | roop | R-05 | in-progress | feat(recommendations): AI Recommendations page with ranked options |
