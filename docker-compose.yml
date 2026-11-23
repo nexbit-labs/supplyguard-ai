@@ -45,6 +45,7 @@ services:
       MOCK_ERP_API_KEY: ${MOCK_ERP_API_KEY:-}
     volumes:
       - ./backend:/app
+      - ./data:/data:ro
     ports:
       - "127.0.0.1:${BACKEND_PORT:-8000}:8000"
     depends_on:
