@@ -15,7 +15,8 @@ Start shape: Web Services Server listener, operation `SG_WSS_GetSupplier` (Creat
 ## Shapes in order
 1. **Start** WSS listener (S1).
 2. **Set Properties "Init"** (S2): `DPP_TENANT_ID`, `DPP_SUPPLIER_ID` (= `supplier_id`), `DPP_CID`; correlation fallback decision.
-3. **Try/Catch** (S3).
+2a. **Decision "Tenant valid?"** (README S2a): `DPP_TENANT_ID` non-empty and matches `^TEN-[A-Z0-9]+$`; false -> error E3 (`VALIDATION_ERROR`, HTTP 400, `correlation_id`) -> Notify -> Return Documents, with NO ERP call. Never call the ERP without `X-Tenant-ID`.
+3. **Try/Catch** (S3). If the HTTP-error option is missing/OFF, the Catch branch maps the status as in README "Two possible behaviours".
 4. Try path: **Set Properties "ERP headers"** (S4 headers).
 5. **Connector** `SG_HTTP_MockERP` + operation `SG_HTTP_GET_Supplier`: GET, path `/erp/suppliers/{1}`, path element 1 = `DPP_SUPPLIER_ID` (Parameters tab). Response profile `SG_JSON_ERP_Supplier_Response` (= `samples/get_supplier.200.json`).
 6. **Decision** on HTTP status (S5): 200 / 404+400 / 401 / other.

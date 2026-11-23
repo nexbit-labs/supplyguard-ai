@@ -44,6 +44,13 @@ Quota: the account has 3 Standard + 2 Test connection slots, so all four process
 
 The base `URL` field on the connection itself holds only a harmless default (`http://localhost:8081`); the real value is always the extension. Authentication on the connection stays `None` because the mock ERP wants a custom header, not Basic/OAuth. The API key is never logged and never appears in these files. (Verify in the UI that a Password-type process property can be made an extension; if not, fall back to a Text property with the key in the extension and mark it sensitive.)
 
+## Tenancy decision (for Uday to confirm)
+CONTRACTS section 1 says a system caller's credential maps to a tenant and tenant is never taken from the body. These processes deviate from that, knowingly:
+- (a) Decision: for the demo the listener trusts the calling backend / proxy to supply the `tenant_id` it derived from the user's JWT, in the request body. The process validates its format (S2a) and forwards it as `X-Tenant-ID`.
+- (b) Risk: the WSS listener uses one Basic-auth credential with no tenant binding, so any holder of that credential can read any tenant by changing `tenant_id`.
+- (c) Mitigation planned in U-09: the API Management proxy / key policy binds each credential to one tenant and rejects a body `tenant_id` that does not match (403); the listener is not exposed publicly (only the runtime host / proxy can reach it).
+- (d) This is a conscious deviation from CONTRACTS section 1 until U-09 lands. CONTRACTS is not edited here. Uday: confirm or choose an alternative (e.g. one listener credential per tenant now).
+
 ## Shared build pattern (all four processes follow it; each spec lists only what differs)
 
 Common steps, referenced from the specs as S1..S6:
@@ -52,9 +59,17 @@ Common steps, referenced from the specs as S1..S6:
 
 **S2 Set Properties "Init".** Rows, in order: `DPP_TENANT_ID` = request profile element `tenant_id`; `DPP_<KEY>` = the id element(s) of this process; `DPP_CID` = request element `correlation_id`. Then Decision "DPP_CID is empty?" -> true: Set Properties `DPP_CID` = inbound HTTP header `X-Correlation-ID` (Dynamic Document Property of the listener); if still empty a second Set Properties uses Unique Id. Order of precedence: header/body from the caller, else a generated UUID. The tenant comes from the trusted system caller (API credential), never from an end user.
 
+**S2a Tenant validation Decision (mandatory, right after S2; its false branch makes NO ERP call).** Decision "Tenant valid?": `DPP_TENANT_ID` is not empty AND matches regex `^TEN-[A-Z0-9]+$` (Decision shape does not do regex: use a Data Process Custom Scripting step or a Decision with "Starts With" `TEN-` plus a Groovy/regex check; the regex is the rule). False branch -> Message error E3 -> HTTP status 400 -> Notify -> Return Documents:
+```
+E3: {"error":{"code":"VALIDATION_ERROR","message":"tenant_id is required and must match TEN-[A-Z0-9]+","details":{"field":"tenant_id"},"correlation_id":"{2}"}}
+```
+(same shape as `profiles/SG_Error.response.json`). Rule: **the process must never call the ERP without the `X-Tenant-ID` header set.** The mock ERP treats a missing header as "all tenants" (it would return other tenants' data), and Boomi may drop an empty header value, so this check is the only guard. Every spec's shape list contains this Decision as step 2a.
+
 **S3 Try/Catch** around steps S4-S5. All error handling for connection/timeout failures happens on the Catch path (S6).
 
 **S4 Set Properties "ERP headers" then HTTP Client Connector (GET).** Operation `SG_HTTP_GET_*`: method GET, connection `SG_HTTP_MockERP`, **Return HTTP Errors = ON** (so 4xx/5xx come back as documents, not exceptions), response profile `SG_JSON_ERP_*_Response`, Request Headers defined: `Accept: application/json`, `X-Correlation-ID`, `X-Tenant-ID`, `X-Api-Key`. Header values: X-Correlation-ID = `DPP_CID`, X-Tenant-ID = `DPP_TENANT_ID`, X-Api-Key = `SG_PP_MockERP.erp_api_key`. Path/query values come from the DPPs in the Connector shape's Parameters tab. No `Idempotency-Key` (GET only). Retries: none; do not wrap the call in a retry loop (4xx must never retry; 5xx is surfaced to the caller, whose own policy decides).
+
+**Two possible behaviours of 4xx/5xx (check which one the UI shows; TEST_LOG row "error behaviour").** (A) If the operation has the option "Return HTTP Errors" and it is ON, 4xx/5xx arrive as normal documents and S5 maps them as written. (B) If the option does not exist or is OFF, an HTTP error is thrown into the Try/Catch. Then the Catch branch (S6) must read the status first, from the Connector DDP "HTTP Status Code" if it is populated, else by parsing the Try/Catch error message (which contains the status code), and apply the SAME mapping as S5: 404/400 -> pass-through error with the same status; 401 and 5xx -> E1 (502); "timed out" -> E2 (504); other (refused, DNS, SSL) -> E1 `unreachable`. For (B) the ERP response body is usually not available, so for 404/400 rebuild the error with a Message shape (`NOT_FOUND` / `VALIDATION_ERROR`, `message` "not found at ERP" / "invalid request", `correlation_id` = `DPP_CID`). The DDP labels named in this spec are unconfirmed; use whatever the Set Properties list actually offers.
 
 **S5 Decision on HTTP status** (DDP "Connector > HTTP Status Code"; compare as number):
 - `200` -> Map `SG_MAP_*` -> S5a success.
@@ -83,6 +98,7 @@ CONTRACTS section 5 is a one-line table; the real API (mock-erp/app) is a supers
 |---|---|---|---|
 | Response envelope | not stated | List endpoints return `{"count": n, "results": [...]}`; supplier returns the bare record | Keep the envelope; add to CONTRACTS s5 |
 | Auth / tenant headers | s1: `X-Api-Key` -> tenant | `X-Api-Key` only checked when the ERP has `MOCK_ERP_API_KEY` set; tenant comes from optional header `X-Tenant-ID` (TEN-<A-Z0-9>); absent = all tenants. Unknown tenant -> 404 `NOT_FOUND` "unknown tenant". Other tenant's supplier -> 404 | Boomi always sends `X-Tenant-ID` (so a wrong tenant never leaks data); document header in CONTRACTS s5 (already an open item in mock-erp/README) |
+| Tenant header strictness | `X-Tenant-ID` not mentioned in s5 | It is optional in the ERP, but **effectively required on reads for tenant isolation**: without it the ERP returns all tenants. The ERP rejects values outside `TEN-[A-Z0-9]+` with 400 | Recommended follow-up for CONTRACTS s5 (owner Nikhil / all three, not edited here): state that Boomi always sends it. The Boomi processes enforce this themselves (README S2a) |
 | PO shape | "lines: item_id, qty, due_date, unit_price" | PO header: `po_id, tenant_id, supplier_id, order_date, expected_date, status, amount{amount,currency}, lines[]`; line: `line_no, item_id, item_name, qty, due_date, unit_price{amount,currency}`. Date field is `due_date` on lines, `expected_date` on header (no `expiry_date`) | Use as captured |
 | Inventory | "on_hand, reserved, safety_stock per location" | also `tenant_id, item_id, item_name, location_id, daily_demand`; one row per (item, location) | Use as captured; `daily_demand` is needed for days-of-cover |
 | Alternates | "qualified alternates with lead_time_days, unit_price, capacity" | row = `tenant_id, item_id, supplier_id, qualified, lead_time_days, unit_price{amount,currency}, capacity`; `capacity` is null when unknown (units/week); **no supplier name**; the `qualified` filter is optional and defaults to all rows | Boomi sends `qualified=true`; callers must treat `capacity: null` as UNKNOWN and never invent a number |

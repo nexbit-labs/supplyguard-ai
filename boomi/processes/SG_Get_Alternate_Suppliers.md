@@ -13,7 +13,7 @@ Start: Web Services Server listener, operation `SG_WSS_GetAlternateSuppliers` (C
 | `correlation_id` | no | README S2 |
 
 ## Shapes in order
-1. **Start** WSS listener. 2. **Set Properties "Init"**: `DPP_TENANT_ID`, `DPP_ITEM_ID`, `DPP_CID` + fallback. 3. **Try/Catch**.
+1. **Start** WSS listener. 2. **Set Properties "Init"**: `DPP_TENANT_ID`, `DPP_ITEM_ID`, `DPP_CID` + fallback. 2a. **Decision "Tenant valid?"** (README S2a): `DPP_TENANT_ID` non-empty and matches `^TEN-[A-Z0-9]+$`; false -> E3 (`VALIDATION_ERROR`, HTTP 400, `correlation_id`) -> Notify -> Return Documents, NO ERP call. Never call the ERP without `X-Tenant-ID`. 3. **Try/Catch** (if HTTP errors are thrown instead of returned, the Catch branch maps the status as in README "Two possible behaviours").
 4. Try: **Set Properties "ERP headers"**.
 5. **Connector** `SG_HTTP_MockERP` + `SG_HTTP_GET_AlternateSuppliers`: GET, path `/erp/alternate-suppliers`, query `item_id` = `DPP_ITEM_ID`, `qualified` = static `true`. Response profile `SG_JSON_ERP_AlternateSuppliers_Response` (= `samples/get_alternate_suppliers.200.json`).
 6. **Decision** on HTTP status (S5).
@@ -24,5 +24,6 @@ Start: Web Services Server listener, operation `SG_WSS_GetAlternateSuppliers` (C
 ## Output
 - 200: `profiles/SG_Get_Alternate_Suppliers.response.json`. Sample for ITM-501: SUP-2001 (2 days, 84.00 INR, capacity 5000) and SUP-2002 (5 days, 79.50 INR, capacity null).
 - Item with no qualified alternates / unknown item: **HTTP 200**, `count: 0, results: []`.
+- `count: 0` means "no data / unknown item"; callers must not read it as zero capacity or "no alternates exist". Likewise `capacity: null` is unknown, not zero.
 - The row has no supplier name; callers needing it join with `SG_Get_Supplier`.
 - Errors per README.

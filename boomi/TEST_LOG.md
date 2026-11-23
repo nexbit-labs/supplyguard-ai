@@ -51,3 +51,12 @@ Setup: mock ERP on `http://localhost:8081` with `MOCK_ERP_API_KEY` set; call eac
 | SG_Get_Alternate_Suppliers | ERP API key wrong (401) | wrong key | HTTP 502 `DOWNSTREAM_ERROR`, erp_status 401 | NOT RUN |
 | SG_Get_Alternate_Suppliers | ERP timeout | blackhole URL | HTTP 504 `DOWNSTREAM_TIMEOUT` | NOT RUN |
 | All four | ERP chaos 500 on reads | n/a: `POST /erp/_chaos {"mode":"500"}` only affects PATCH, so there is no read 5xx trigger | not testable until the ERP gets a read chaos mode (optional ask to Nikhil); the 5xx branch is covered by the stopped-ERP and 401 rows | NOT RUN |
+| SG_Get_Supplier | Missing tenant_id | body without `tenant_id` (or empty string) | HTTP 400 `VALIDATION_ERROR` with `correlation_id`; `GET /erp/_requests` shows NO new call | NOT RUN |
+| SG_Get_Supplier | Malformed tenant_id | `tenant_id` = `acme` | HTTP 400 `VALIDATION_ERROR`, no ERP call | NOT RUN |
+| SG_Get_Open_POs_By_Supplier | Missing tenant_id | body without `tenant_id` (or empty string) | HTTP 400 `VALIDATION_ERROR` with `correlation_id`; no ERP call in `/erp/_requests` | NOT RUN |
+| SG_Get_Open_POs_By_Supplier | Malformed tenant_id | `tenant_id` = `acme` | HTTP 400 `VALIDATION_ERROR`, no ERP call | NOT RUN |
+| SG_Get_Inventory | Missing tenant_id | body without `tenant_id` (or empty string) | HTTP 400 `VALIDATION_ERROR` with `correlation_id`; no ERP call in `/erp/_requests` | NOT RUN |
+| SG_Get_Inventory | Malformed tenant_id | `tenant_id` = `acme` | HTTP 400 `VALIDATION_ERROR`, no ERP call | NOT RUN |
+| SG_Get_Alternate_Suppliers | Missing tenant_id | body without `tenant_id` (or empty string) | HTTP 400 `VALIDATION_ERROR` with `correlation_id`; no ERP call in `/erp/_requests` | NOT RUN |
+| SG_Get_Alternate_Suppliers | Malformed tenant_id | `tenant_id` = `acme` | HTTP 400 `VALIDATION_ERROR`, no ERP call | NOT RUN |
+| All four | Error behaviour of the HTTP Client operation | check whether the operation has "Return HTTP Errors"; call SG_Get_Supplier with `SUP-9999` | record which: (A) option exists and the 404 arrives as a document, or (B) it is thrown into Try/Catch and the Catch branch maps it; either way the caller must get HTTP 404 `NOT_FOUND` | NOT RUN |
