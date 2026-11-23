@@ -99,7 +99,7 @@
 - **Notes:** -
 
 ### U-07: Boomi ERP read processes + canonical profiles
-- **Status:** todo
+- **Status:** in-progress
 - **Sprint:** S1 (25-30 Nov) | **Est:** 3d | **Depends:** U-01, N-03
 - **Branch:** `uday/U-07-boomi-erp-read`
 - **Model hint:** sonnet / medium via `boomi-builder` (use the boomi-integration skill if installed); opus / high for mapping review
@@ -109,7 +109,7 @@
   - [ ] Connection URL and credentials are environment extensions
   - [ ] Specs/exports committed under `boomi/processes/`
 - **Done in:** -
-- **Notes:** Needs the mock ERP reachable from Boomi - tunnel from U-12.
+- **Notes:** PLAN (piece | runs as | model/effort | branch): build specs + profiles for the 4 SG_Get_* processes | subagent boomi-builder (CLI fallback) | sonnet/medium | `uday/U-07-boomi-erp-read--specs`; sample payloads captured from the running mock ERP | same builder | sonnet/medium | same; mapping review vs CONTRACTS s5 + mock ERP | reviewer-lite (escalate to reviewer if it says so) | sonnet/medium | -. Building and test-running the processes in Boomi is manual (Uday, in the UI; Claude has no Boomi access) - acceptance 1 and 2 stay open until then. Update from U-01: Uday's runtime is local on ESI-PC28, so it can reach the mock ERP on localhost - no tunnel needed for Uday's own runs (U-12 tunnel only for other machines). Open before building in Boomi: SG-Dev vs reuse BIMBA-OPCUA-Test environment; how processes reach Nikhil's account (BOOMI_ENV.md section 9).
 
 ### U-08: Event Streams topics + disruption subscriber
 - **Status:** todo
