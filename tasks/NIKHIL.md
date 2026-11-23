@@ -109,13 +109,13 @@
 - **Sprint:** S2 (4-7 Dec) | **Est:** 1.5d | **Depends:** N-01, N-04, U-03
 - **Branch:** `nikhil/N-07-validator`
 - **Model hint:** sonnet / medium; opus / high review
-- **Deliverables:** `backend/apps/intelligence/validation.py` + `POST /internal/risk-cases/{id}/analysis`: JSON-schema check, cross-check every referenced supplier/PO/item/qty/price against the stored snapshot, flag unsupported options (`status=UNSUPPORTED`, not actionable), persist Recommendation rows, transition case to RECOMMENDATION_READY.
+- **Deliverables:** `backend/apps/intelligence/validation.py` + `POST /internal/risk-cases/{id}/analysis`: JSON-schema check, cross-check every referenced supplier/PO/item/qty/price against the stored snapshot, flag unsupported options with `Recommendation.unsupported = true` + `unsupported_reasons` (not actionable; Recommendation `status` stays PENDING | APPROVED | REJECTED | CHANGES_REQUESTED and an unsupported one can never be APPROVED), persist Recommendation rows with `round = RiskCase.analysis_round`; write one append-only `AgentRun` row per agent call (`raw`, `valid`, `validation_errors`) for AC-07, transition case to RECOMMENDATION_READY via `apps.workflow.services.transition()` (never set status directly; U-03 status guard).
 - **Acceptance:**
   - [ ] Option referencing a non-existent supplier is flagged, not shown as actionable
   - [ ] Raw agent output stored for audit (AC-07)
   - [ ] Tests for valid, schema-invalid and fact-mismatch payloads
 - **Done in:** -
-- **Notes:** -
+- **Notes:** Wording aligned with U-03 models (CONTRACTS s10 DRAFT 0.3, agreed with Uday 2026-11-23, open point 7).
 
 ### N-08: Boomi correlation + impact orchestration process
 - **Status:** todo
