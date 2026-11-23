@@ -31,6 +31,8 @@ The Boomi cloud atom cannot reach `localhost`. Expose the local services over HT
 5. Record the URL as a Boomi **environment extension** (Manage > Environment Extensions > Connections / process properties), e.g. `MOCK_ERP_URL` and `MOCK_ERP_API_KEY` (password type). Do not commit URLs or keys to git; update the extension whenever the tunnel URL changes.
 6. Stop the tunnel when not demoing.
 
+**Never expose through a tunnel: Postgres (5432) and the Vite dev server (5173).** A tunnelled backend also exposes `/admin` and `/api/schema/`, so keep tunnels short and never create a weak superuser while a tunnel is up.
+
 ## S4 - Hosted plan (Render)
 
 `deploy/render.yaml` is a Render Blueprint: managed Postgres 16, backend (docker, `./backend/Dockerfile`, context `./backend`), mock-erp (docker, `mock-erp/Dockerfile`, repo-root context, `PORT=8081`), frontend static site.
@@ -43,8 +45,14 @@ Steps:
 3. The free plan has no `preDeployCommand`: migrations run in the start command (`migrate && gunicorn`). `RENDER_EXTERNAL_HOSTNAME` is added to `ALLOWED_HOSTS` automatically; `BEHIND_HTTPS_PROXY=True` is set in the blueprint.
 4. Put the hosted mock-erp URL + key into the Boomi environment extensions.
 
+S4 checklist after the first deploy:
+- Confirm the backend health check returns 200 on `/api/health` with `DEBUG=False`. A 400 means `DisallowedHost`: add the host to `ALLOWED_HOSTS`.
+- Confirm the `sh -c` start command expands `$PORT` (the service must listen on Render's port, not a literal `$PORT`).
+- The database has `ipAllowList: []`, so it is reachable only through the internal connection string.
+
 Follow-ups / known gaps:
 - With `DEBUG=False`, Django admin static files are not served by gunicorn. Add `whitenoise` (middleware + `STORAGES`, `collectstatic` in the build) in `backend/` - not done to avoid new dependencies. The API itself is unaffected.
 - Local compose runs `runserver` (dev, auto-reload); `backend/Dockerfile` CMD is production gunicorn running as a non-root user. The blueprint start command adds migrate before gunicorn.
 - Render free services sleep after ~15 min idle (~1 min cold start) and the in-memory mock ERP resets to its seed data on wake. The live demo needs a paid plan or a keep-warm ping.
-- Render free Postgres expires; use a paid plan for anything beyond the demo.
+- Render free Postgres expires after 30 days and only one is allowed per workspace. Create it on or after about 1 Dec so it lasts to 31 Dec, or use a paid plan.
+- The two free web services (backend, mock-erp) share 750 instance-hours per month: do not keep-warm-ping both all month.

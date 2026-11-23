@@ -8,10 +8,11 @@
 ```
 git clone <repo-url> supplyguard-ai
 cd supplyguard-ai
-cp .env.example .env        # Windows PowerShell: Copy-Item .env.example .env
 docker compose up --build
 ```
-First start takes a few minutes (frontend runs `npm ci`). The backend migrates the database on start.
+`.env` is optional: compose has defaults for everything. Only run `cp .env.example .env` (PowerShell: `Copy-Item .env.example .env`) when you want to change values.
+
+The first frontend start runs `npm ci` inside the container and can take several minutes. The backend migrates the database on start.
 
 ## URLs
 | Service | URL |
@@ -23,9 +24,9 @@ First start takes a few minutes (frontend runs `npm ci`). The backend migrates t
 | Mock ERP health | http://localhost:8081/health |
 | PostgreSQL | localhost:5432 (user/db/password `supplyguard` by default) |
 
-Ports are overridable in `.env`: `FRONTEND_PORT`, `BACKEND_PORT`, `MOCK_ERP_PORT`, `DB_PORT`. The frontend calls the backend directly at `http://localhost:${BACKEND_PORT}/api/v1`; set `VITE_API_MOCK=true` in `.env` to use the in-browser MSW mocks instead.
+Ports are overridable in `.env` or inline: `FRONTEND_PORT`, `BACKEND_PORT`, `MOCK_ERP_PORT`, `DB_PORT`. `BACKEND_PORT` is also used for `VITE_API_BASE_URL` (`http://localhost:${BACKEND_PORT}/api/v1`). If you change `FRONTEND_PORT` you must also set `CORS_ALLOWED_ORIGINS=http://localhost:<FRONTEND_PORT>`.
 
-**Note:** the real API has no login endpoints until U-03/U-04 land, so with the default `VITE_API_MOCK=false` you cannot sign in. Set `VITE_API_MOCK=true` in `.env` to click through the UI until then. All published ports bind to `127.0.0.1` only.
+**Note:** `VITE_API_MOCK` defaults to `true`: the UI runs on its built-in mock API until U-04 (auth) is merged, because the real API cannot log anyone in yet. Then set `VITE_API_MOCK=false` in `.env`. All published ports bind to `127.0.0.1` only.
 
 ## Running tests
 ```
@@ -34,7 +35,7 @@ python scripts/run_checks.py
 Backend tests use SQLite by default; set `DATABASE_URL=postgres://...` to run them against Postgres. Mock ERP uses pytest, frontend uses Vitest (`npm test` in `frontend/`).
 
 ## Troubleshooting
-- Port already in use: change the matching `*_PORT` in `.env`, then `docker compose up` again (also update `CORS_ALLOWED_ORIGINS` if you change `FRONTEND_PORT`).
+- Port already in use (8000 and 5432 are often taken by other projects): override the ports, e.g. `BACKEND_PORT=8001 DB_PORT=5433 docker compose up` (or set them in `.env`). If you change `FRONTEND_PORT`, also set `CORS_ALLOWED_ORIGINS=http://localhost:<FRONTEND_PORT>`.
 - Reset the database: `docker compose down -v` (deletes the `pgdata` volume and the frontend `node_modules` volume).
 - Rebuild after dependency changes: `docker compose up --build`.
 
