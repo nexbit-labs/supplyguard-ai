@@ -9,12 +9,12 @@
 
 ## Handoff
 <!-- Overwrite this block at the end of EVERY session (run /handoff). Newest state only; history goes to progress/SESSION_LOG.md -->
-- **Last updated:** 2026-11-20 (N-06 acceptance runs done, agent deployed, in review)
-- **Current task:** N-06 (review; N-05 in review)
-- **Branch:** `nikhil/N-06-recovery-agent`
-- **Where I left off:** Agent "SG Recovery Planner" (id b5f2f51a-0b4e-41e6-998d-e04031f2a9d0) built in Agentstudio with prompt v1.3.0 and deployed 2026-11-20 (package 1.0, deployment 1142f95b-7b4a-466f-a895-89a2140068ac, Agent Garden Production, active). Six live v1.3.0 runs graded (DEMO 30/31, TC05 31/31, ADV-01 35/35, ADV-02 33/33, ADV-03 34/34, ADV-04 33/34). Known issue: `assumptions_qualitative` on SUP-2002 (capacity unknown) in DEMO and ADV-04.
-- **Next step:** N-04 engine in review. Next: give Uday the OK on CONTRACTS s10 point 7 (per-tenant `risk_thresholds.exposure_full_scale` in the Tenant settings shape), then N-04 service wiring after U-03 merges, then N-07 / N-11. Optional N-06 prompt tweak for capacity-unknown suppliers still open (needs a new deploy).
-- **Blockers:** U-03 not yet in collaboration (awaiting re-review + s10 approvals). U-07 tools not built (agents have no tools).
+- **Last updated:** 2026-11-23 (N-07 validator built + reviewed, in review)
+- **Current task:** N-04 and N-07 engines (both review; N-06 in review, N-05 in review)
+- **Branch:** `nikhil/N-07-validator` (docs on `nikhil/N-07-validator--docs`)
+- **Where I left off:** N-07 validator `backend/apps/intelligence/validation.py` built and Opus-approved (task branch e9ff488): pure functions, 163 tests, 98% coverage, all 26 live agent runs pass. Persistence and the analysis endpoint wait on U-03 and N-10.
+- **Next step:** N-04 and N-07 engines in review; waiting on U-03 merge (send Uday the point-7 OK + `jsonschema>=4.18` / schema-folder asks), then the N-04 and N-07 persistence steps and N-10. N-11 what-if is ready to start now.
+- **Blockers:** U-03 not in collaboration (awaiting re-review + s10 approvals). U-07 tools not built (agents have no tools).
 ---
 
 ### N-01: Agent I/O JSON schemas + fixtures
@@ -105,17 +105,17 @@
 - **Notes:** Agent "SG Recovery Planner" (id b5f2f51a-0b4e-41e6-998d-e04031f2a9d0) built in Agentstudio as a saved draft, not deployed, prompt v1.3.0. Six live v1.3.0 runs graded 2026-11-20: DEMO 30/31, TC05 31/31, ADV-01 35/35, ADV-02 33/33, ADV-03 34/34, ADV-04 33/34. Known issue (open): `assumptions_qualitative` fails in DEMO and RP-ADV-04 - the SUP-2002 option (capacity unknown) assumes "sufficient capacity available". Deployed in Agentstudio 2026-11-20: package "SG Recovery Planner" 1.0 (94004c6f-f9c7-4804-b5cc-fa8e8b4236ff), deployment 1142f95b-7b4a-466f-a895-89a2140068ac, environment Agent Garden Production, Boomi reports active. Not yet callable from Integration (needs an Agent Control Tower account and an Agent Step, Uday's stream). Optional next: a prompt assumption template for capacity-unknown suppliers. See `boomi/agents/recovery_planner/eval/runs/README.md`.
 
 ### N-07: Agent output validator + persistence
-- **Status:** todo
+- **Status:** review
 - **Sprint:** S2 (4-7 Dec) | **Est:** 1.5d | **Depends:** N-01, N-04, U-03
 - **Branch:** `nikhil/N-07-validator`
 - **Model hint:** sonnet / medium; opus / high review
 - **Deliverables:** `backend/apps/intelligence/validation.py` + `POST /internal/risk-cases/{id}/analysis`: JSON-schema check, cross-check every referenced supplier/PO/item/qty/price against the stored snapshot, flag unsupported options with `Recommendation.unsupported = true` + `unsupported_reasons` (not actionable; Recommendation `status` stays PENDING | APPROVED | REJECTED | CHANGES_REQUESTED and an unsupported one can never be APPROVED), persist Recommendation rows with `round = RiskCase.analysis_round`; write one append-only `AgentRun` row per agent call (`raw`, `valid`, `validation_errors`) for AC-07, transition case to RECOMMENDATION_READY via `apps.workflow.services.transition()` (never set status directly; U-03 status guard).
 - **Acceptance:**
-  - [ ] Option referencing a non-existent supplier is flagged, not shown as actionable
+  - [x] Option referencing a non-existent supplier is flagged, not shown as actionable
   - [ ] Raw agent output stored for audit (AC-07)
-  - [ ] Tests for valid, schema-invalid and fact-mismatch payloads
+  - [x] Tests for valid, schema-invalid and fact-mismatch payloads
 - **Done in:** -
-- **Notes:** Wording aligned with U-03 models (CONTRACTS s10 DRAFT 0.3, agreed with Uday 2026-11-23, open point 7).
+- **Notes:** Validator done: `backend/apps/intelligence/validation.py`, pure functions (schema + fact check against snapshot/impact, per-option `unsupported` + reason codes, fail-closed `VALIDATOR_ERROR`), 163 tests, 98% coverage, Opus review APPROVE after 2 fix rounds (task branch e9ff488). All 26 live agent runs pass. Schema folder from `SG_SCHEMA_DIR` (env or Django setting), falling back to repo `ai/schemas`. LEFT after U-03 merges + N-10 `transition()`: persistence (one AgentRun per call with `raw`/`valid`/`validation_errors`; Recommendation rows with `round`, `unsupported`, `unsupported_reasons`) + `POST /internal/risk-cases/{id}/analysis` + transition to RECOMMENDATION_READY; then tick box 2. Uday asks: `jsonschema>=4.18` in backend/requirements.txt; copy `ai/schemas` into the backend image + set `SG_SCHEMA_DIR`. Follow-up: transfer destination check needs a PO location field that the snapshot has (currently ineffective; transfers are not in the ERP PATCH).
 
 ### N-08: Boomi correlation + impact orchestration process
 - **Status:** todo
