@@ -1,0 +1,8 @@
+{
+  "error": {
+    "code": "UNAUTHENTICATED",
+    "message": "missing or invalid X-Api-Key",
+    "details": {},
+    "correlation_id": "ffca96e0-4c41-475e-8706-86f25193c677"
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "correlation_id": "11111111-1111-4111-8111-111111111111",
+  "count": 3,
+  "results": [
+    {
+      "po_id": "PO-1024",
+      "tenant_id": "TEN-ACME",
+      "supplier_id": "SUP-1001",
+      "order_date": "2026-12-21",
+      "expected_date": "2027-01-18",
+      "status": "OPEN",
+      "amount": {
+        "amount": "518922.00",
+        "currency": "INR"
+      },
+      "lines": [
+        {
+          "line_no": 1,
+          "item_id": "ITM-529",
+          "item_name": "Flange 529",
+          "qty": 1800,
+          "due_date": "2027-01-18",
+          "unit_price": {
+            "amount": "288.29",
+            "currency": "INR"
+          }
+        }
+      ]
+    },
+    {
+      "po_id": "PO-1179",
+      "tenant_id": "TEN-ACME",
+      "supplier_id": "SUP-1001",
+      "order_date": "2026-12-23",
+      "expected_date": "2027-01-20",
+      "status": "OPEN",
+      "amount": {
+        "amount": "224860.50",
+        "currency": "INR"
+      },
+      "lines": [
+        {
+          "line_no": 1,
+          "item_id": "ITM-529",
+          "item_name": "Flange 529",
+          "qty": 100,
+          "due_date": "2027-01-20",
+          "unit_price": {
+            "amount": "309.56",
+            "currency": "INR"
+          }
+        },
+        {
+          "line_no": 2,
+          "item_id": "ITM-560",
+          "item_name": "Shaft 560",
+          "qty": 950,
+          "due_date": "2027-01-20",
+          "unit_price": {
+            "amount": "204.11",
+            "currency": "INR"
+          }
+        }
+      ]
+    }
+  ]
+}
