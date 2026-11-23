@@ -12,7 +12,7 @@ docker compose up --build
 ```
 `.env` is optional: compose has defaults for everything. Only run `cp .env.example .env` (PowerShell: `Copy-Item .env.example .env`) when you want to change values.
 
-The first frontend start runs `npm ci` inside the container and can take several minutes. The backend migrates the database on start.
+The first frontend start runs `npm ci` inside the container and can take several minutes (about 4 on a fresh clone). The backend migrates the database on start and answers `/api/health` after about a minute, so wait for `docker compose ps` to show everything Up before opening the URLs.
 
 ## URLs
 | Service | URL |
