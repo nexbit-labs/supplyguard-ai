@@ -1,0 +1,26 @@
+{
+  "correlation_id": "11111111-1111-4111-8111-111111111111",
+  "count": 2,
+  "results": [
+    {
+      "tenant_id": "TEN-ACME",
+      "item_id": "ITM-501",
+      "item_name": "Bracket 501",
+      "location_id": "DC-CHENNAI",
+      "on_hand": 800,
+      "reserved": 100,
+      "safety_stock": 200,
+      "daily_demand": 150
+    },
+    {
+      "tenant_id": "TEN-ACME",
+      "item_id": "ITM-501",
+      "item_name": "Bracket 501",
+      "location_id": "DC-PUNE",
+      "on_hand": 1100,
+      "reserved": 200,
+      "safety_stock": 300,
+      "daily_demand": 600
+    }
+  ]
+}

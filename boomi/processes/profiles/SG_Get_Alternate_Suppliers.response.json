@@ -1,0 +1,30 @@
+{
+  "correlation_id": "11111111-1111-4111-8111-111111111111",
+  "count": 2,
+  "results": [
+    {
+      "tenant_id": "TEN-ACME",
+      "item_id": "ITM-501",
+      "supplier_id": "SUP-2001",
+      "qualified": true,
+      "lead_time_days": 2,
+      "unit_price": {
+        "amount": "84.00",
+        "currency": "INR"
+      },
+      "capacity": 5000
+    },
+    {
+      "tenant_id": "TEN-ACME",
+      "item_id": "ITM-501",
+      "supplier_id": "SUP-2002",
+      "qualified": true,
+      "lead_time_days": 5,
+      "unit_price": {
+        "amount": "79.50",
+        "currency": "INR"
+      },
+      "capacity": null
+    }
+  ]
+}

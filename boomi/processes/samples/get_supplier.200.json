@@ -1,0 +1,22 @@
+{
+  "supplier_id": "SUP-1001",
+  "tenant_id": "TEN-ACME",
+  "name": "Summit Bearings Pvt Ltd",
+  "tax_id": "27WMQYJ5776F1Z8",
+  "category": "Raw Material",
+  "city": "Coimbatore",
+  "country": "IN",
+  "status": "ACTIVE",
+  "risk_level": "MEDIUM",
+  "on_time_delivery_pct": 88.2,
+  "quality_score": 3.7,
+  "capacity_per_week": null,
+  "contact_email": "orders@sup-1001.example.com",
+  "disruption_history": [
+    {
+      "date": "2026-06-21",
+      "event_type": "SHIPMENT_DELAY",
+      "delay_days": 4
+    }
+  ]
+}
