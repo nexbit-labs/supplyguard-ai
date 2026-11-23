@@ -212,3 +212,12 @@ Template:
 - Next: optional prompt tweak for capacity-unknown suppliers (needs a new deploy); Agent Control Tower + Agent Step with Uday; N-04 / N-07
 - Blockers: U-03 for N-04; U-07 tools not built; Agent Control Tower account for Integration use
 - Models used: deploy and doc session haiku (no advisor)
+
+## 2026-11-23 - nikhil - N-04 (design + engine built)
+- Branch: nikhil/N-04-impact-engine
+- Did: N-04 design spec and `backend/apps/intelligence/impact.py` pure functions built (68 tests, 100% line coverage, reviewer APPROVE at e0ab4a4); coverage made net of safety stock (data/README.md updated); exposure scale proposed as per-tenant `risk_thresholds.exposure_full_scale` for CONTRACTS s10; N-04 set to review with the four acceptance boxes ticked; service wiring left until U-03 merges; NIKHIL.md Handoff updated; PROGRESS.md regenerated.
+- Tests: 68 impact tests passing (per engine review)
+- Status now: review
+- Next: Uday OK on CONTRACTS s10 point 7; N-04 service wiring after U-03 merges; then N-07 / N-11
+- Blockers: U-03 not yet in collaboration (awaiting re-review + s10 approvals); U-07 tools not built
+- Models used: docs session haiku (no advisor)
