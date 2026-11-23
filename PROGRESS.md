@@ -6,9 +6,9 @@
 
 | Member | Done | In progress | Review | Blocked | Pending | Overdue | % | Next |
 |---|---|---|---|---|---|---|---|---|
-| Roop | 1 | 0 | 3 | 0 | 8 | 0 | 8% | - |
-| Nikhil | 0 | 0 | 7 | 0 | 7 | 0 | 0% | N-11 |
-| Uday | 1 | 0 | 2 | 0 | 9 | 0 | 8% | U-04 |
+| Roop | 1 | 0 | 3 | 0 | 8 | 0 | 8% | R-02 |
+| Nikhil | 0 | 0 | 7 | 0 | 7 | 0 | 0% | N-10 |
+| Uday | 1 | 0 | 4 | 0 | 7 | 0 | 8% | U-06 |
 | Shared | 0 | 1 | 0 | 0 | 4 | 0 | 0% | S-01 |
 
 ## Task board
@@ -27,8 +27,8 @@
 | N-04 | Deterministic impact + risk scoring engine | Nikhil | S1 (25-30 Nov) | review | 4/4 | - |
 | R-02 | Read APIs for the UI (Django `apps/portal`) | Roop | S1 (26-30 Nov) | todo | 0/3 | - |
 | R-09 | CI pipeline | Roop | S1 (24-26 Nov) | review | 0/1 | - |
-| U-04 | Auth, tenant isolation, RBAC, users + settings APIs | Uday | S1 (24-27 Nov) | todo | 0/3 | - |
-| U-05 | Audit service + correlation-id middleware | Uday | S1 (24-26 Nov) | todo | 0/2 | - |
+| U-04 | Auth, tenant isolation, RBAC, users + settings APIs | Uday | S1 (24-27 Nov) | review | 3/3 | - |
+| U-05 | Audit service + correlation-id middleware | Uday | S1 (24-26 Nov) | review | 2/2 | - |
 | U-06 | Event intake + Boomi client (Django `apps/integrations`) | Uday | S1 (26-30 Nov) | todo | 0/5 | - |
 | U-07 | Boomi ERP read processes + canonical profiles | Uday | S1 (25-30 Nov) | todo | 0/3 | - |
 | U-12 | Local + hosted deployment | Uday | S1 tunnel (by 28 Nov), S4 hosted (15-20 Dec) | todo | 0/3 | - |
@@ -89,23 +89,23 @@
 
 | Date | Commit | Member | Task | Status | Subject |
 |---|---|---|---|---|---|
-| 2026-11-23 | 19d3c18 | nikhil | N-07 | review | merge: N-07 task file to review |
+| 2026-11-23 | aefd47c | uday | U-04 | review | merge: U-04 Auth, tenant isolation, RBAC, users + settings APIs (auto-merge) |
+| 2026-11-23 | ed54b5a | uday | U-04 | review | chore(tasks): U-04 and U-05 to review - evidence, decisions to ratify, hand-offs |
+| 2026-11-23 | 51c004d | nikhil | N-04 | review | docs(tasks): N-04 service done note |
+| 2026-11-23 | f5f08f6 | nikhil | N-04 | review | feat(intelligence): create_risk_case persists impact result |
+| 2026-11-23 | ce7e1a5 | uday | U-04 | in-progress | merge: U-04 re-review fixes (valid API key never 429, failure counters, usernames, wiring tests) |
+| 2026-11-23 | 1e439a0 | roop | R-10 | in-progress | docs(tasks): R-10 v2 screen restyle plan |
+| 2026-11-23 | 4568444 | uday | U-04 | in-progress | fix(accounts): U-04 review round 2 - valid keys always authenticate, failed-login limit, username constraint |
+| 2026-11-23 | 6e238bb | roop | R-10 | in-progress | test(frontend): widen async timeouts for lazy route chunks |
+| 2026-11-23 | de5640b | roop | R-10 | in-progress | feat(frontend): design system v2 foundation (minimal enterprise light) |
+| 2026-11-23 | 41216a8 | uday | U-04 | in-progress | merge: schemas-dep piece (jsonschema dep, ai/ in backend image) into U-04 |
+| 2026-11-23 | f4608d6 | uday | U-04 | in-progress | merge: U-04 review fixes (throttles, matrix EXPECTED, audit flood guards, secure default, cross-tenant false alarms) |
 | 2026-11-23 | 4f504ef | nikhil | N-07 | review | docs(tasks): N-07 validator to review |
 | 2026-11-23 | a703e67 | nikhil | N-07 | review | merge: N-07 Agent output validator + persistence (auto-merge) |
+| 2026-11-23 | 19d3c18 | nikhil | N-07 | review | merge: N-07 task file to review |
+| 2026-11-23 | a55650d | uday | U-04 | in-progress | fix(accounts): U-04 security review - throttles, failure guards, secure default, matrix test, hardening |
 | 2026-11-23 | e9ff488 | nikhil | N-07 | in-progress | merge: N-07 re-review fixes into task branch |
 | 2026-11-23 | 5bbe7a6 | nikhil | N-07 | in-progress | fix(intelligence): N-07 re-review fixes |
 | 2026-11-23 | 3081fc5 | uday | U-04 | in-progress | build(deploy): ship ai/ package (schema_registry) in image and dev mount |
 | 2026-11-23 | b9de053 | roop | R-10 | in-progress | docs(frontend): design system v2 from ui-ux-pro-max (minimal enterprise light) |
 | 2026-11-23 | 51d6b43 | uday | U-04 | in-progress | build(deploy): add jsonschema dep and ai/schemas to backend image |
-| 2026-11-23 | c3af4db | nikhil | N-07 | in-progress | merge: N-07 review fixes into task branch |
-| 2026-11-23 | 3377dd2 | nikhil | N-07 | in-progress | fix(intelligence): N-07 review fixes - change-field allowlist, fail-closed checks, schema dir |
-| 2026-11-23 | ace8e62 | roop | R-10 | in-progress | merge: R-10 --screens-admin sub-branch into task branch |
-| 2026-11-23 | ebb164f | roop | R-10 | in-progress | merge: R-10 --screens-risk sub-branch into task branch |
-| 2026-11-23 | f3a5c7a | roop | R-10 | in-progress | merge: R-10 --screens-insight sub-branch into task branch |
-| 2026-11-23 | ecb0c3a | roop | R-10 | in-progress | feat(frontend): premium redesign of overview, supplier list and detail |
-| 2026-11-23 | c6a0191 | nikhil | N-07 | in-progress | merge: N-07 validator piece into task branch |
-| 2026-11-23 | b0a1e4b | nikhil | N-07 | in-progress | feat(intelligence): N-07 agent output schema + fact-check validator |
-| 2026-11-23 | 3a228f6 | roop | R-10 | in-progress | feat(frontend): premium redesign of risk, recommendations and approvals screens |
-| 2026-11-23 | 819ffba | roop | R-10 | in-progress | feat(frontend): premium redesign of admin screens (R-10 screens-admin) |
-| 2026-11-23 | 199df21 | uday | U-04 | in-progress | merge: U-04 tenancy piece (tenant mixin, role matrix, /settings, /users) into uday/U-04-auth-tenancy |
-| 2026-11-23 | 2632881 | uday | U-03 | review | merge: U-03 Core data model + seed loader (auto-merge) |

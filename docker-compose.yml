@@ -17,7 +17,9 @@ services:
       retries: 10
 
   backend:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     # Dev-only stack: runserver auto-reloads and serves admin static files (gunicorn does not).
     # Production images use the Dockerfile CMD (gunicorn); see deploy/ in U-12.
     command: >
@@ -35,9 +37,11 @@ services:
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1,backend}
       DATABASE_URL: postgres://${POSTGRES_USER:-supplyguard}:${POSTGRES_PASSWORD:-supplyguard}@db:5432/${POSTGRES_DB:-supplyguard}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173}
+      SG_SCHEMA_DIR: /app/ai/schemas
     volumes:
       - ./backend:/app
       - ./data:/data:ro
+      - ./ai:/app/ai:ro
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     depends_on:
