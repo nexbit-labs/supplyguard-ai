@@ -61,6 +61,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    # First, so every response (including errors from later middleware) carries the id.
+    "apps.audit.middleware.CorrelationIdMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -125,15 +127,33 @@ CORS_EXPOSE_HEADERS = ["X-Correlation-ID"]
 # --- DRF / JWT / OpenAPI --------------------------------------------------------------------
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "apps.accounts.authentication.TenantJWTAuthentication",
+        "apps.accounts.authentication.ApiKeyAuthentication",
     ],
-    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
+    # Only the login and refresh views are throttled (scopes below). Each gunicorn worker counts
+    # separately (LocMemCache); see backend/README.md.
+    "DEFAULT_THROTTLE_RATES": {
+        "auth": env("AUTH_THROTTLE_RATE", default="10/min"),  # /auth/token per client IP
+        "auth_username": env("AUTH_USERNAME_THROTTLE_RATE", default="10/min"),  # per username
+        "auth_refresh": env("AUTH_REFRESH_THROTTLE_RATE", default="60/min"),  # /auth/refresh
+    },
+    # Number of trusted reverse proxies in front of Django (0 = none, 1 = behind the U-12
+    # proxy). The client IP for throttles and failed-credential counters is read from
+    # X-Forwarded-For only up to this depth, so a spoofed header cannot mint new buckets.
+    "NUM_PROXIES": env.int("NUM_PROXIES", default=0),
+    # Secure by default: a view without `permission_key` is refused (403). Views that are
+    # meant to be public (login, health, schema) say so explicitly.
+    "DEFAULT_PERMISSION_CLASSES": ["apps.accounts.permissions.RolePermission"],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 25,
     # docs/CONTRACTS.md section 1: one error body shape for every API error.
     "EXCEPTION_HANDLER": "apps.core.exceptions.contract_exception_handler",
 }
+
+# Failed-credential guards (apps/accounts/failguard.py), per client IP per minute.
+AUTH_FAIL_AUDIT_PER_MIN = env.int("AUTH_FAIL_AUDIT_PER_MIN", default=10)  # max audit rows
+AUTH_FAIL_LIMIT_PER_MIN = env.int("AUTH_FAIL_LIMIT_PER_MIN", default=30)  # then 429
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=env.int("JWT_ACCESS_MINUTES", default=30)),
@@ -152,7 +172,19 @@ SPECTACULAR_SETTINGS = {
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "filters": {"correlation_id": {"()": "apps.audit.logfilter.CorrelationIdFilter"}},
+    "formatters": {
+        "default": {
+            "format": "%(asctime)s %(levelname)s [%(correlation_id)s] %(name)s: %(message)s"
+        }
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "filters": ["correlation_id"],
+            "formatter": "default",
+        }
+    },
     "root": {"handlers": ["console"], "level": env("LOG_LEVEL", default="INFO")},
 }
 
