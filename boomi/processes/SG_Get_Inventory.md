@@ -15,7 +15,7 @@ Start: Web Services Server listener, operation `SG_WSS_GetInventory` (Create, PO
 `location_id` is deliberately not an input: an empty query value would make the ERP filter to zero rows. Add it only with a Decision that omits the parameter when blank.
 
 ## Shapes in order
-1. **Start** WSS listener. 2. **Set Properties "Init"**: `DPP_TENANT_ID`, `DPP_ITEM_ID`, `DPP_CID` + fallback. 3. **Try/Catch**.
+1. **Start** WSS listener. 2. **Set Properties "Init"**: `DPP_TENANT_ID`, `DPP_ITEM_ID`, `DPP_CID` + fallback. 2a. **Decision "Tenant valid?"** (README S2a): `DPP_TENANT_ID` non-empty and matches `^TEN-[A-Z0-9]+$`; false -> E3 (`VALIDATION_ERROR`, HTTP 400, `correlation_id`) -> Notify -> Return Documents, NO ERP call. Never call the ERP without `X-Tenant-ID`. 3. **Try/Catch** (if HTTP errors are thrown instead of returned, the Catch branch maps the status as in README "Two possible behaviours").
 4. Try: **Set Properties "ERP headers"**.
 5. **Connector** `SG_HTTP_MockERP` + `SG_HTTP_GET_Inventory`: GET, path `/erp/inventory`, query `item_id` = `DPP_ITEM_ID`. Response profile `SG_JSON_ERP_Inventory_Response` (= `samples/get_inventory.200.json`).
 6. **Decision** on HTTP status (S5).
@@ -25,5 +25,5 @@ Start: Web Services Server listener, operation `SG_WSS_GetInventory` (Create, PO
 
 ## Output
 - 200: `profiles/SG_Get_Inventory.response.json` (one row per location).
-- Unknown item: **HTTP 200**, `count: 0, results: []` (`samples/get_inventory.empty.json`) - the ERP does not 404 here. The caller must state "no inventory data" and not assume zero stock.
+- Unknown item: **HTTP 200**, `count: 0, results: []` (`samples/get_inventory.empty.json`) - the ERP does not 404 here. `count: 0` means "no data / unknown item". Callers must state "no inventory data" and must not read it as zero stock.
 - Errors per README.

@@ -15,7 +15,7 @@ Start: Web Services Server listener, operation `SG_WSS_GetOpenPOsBySupplier` (Cr
 The status filter is fixed to `OPEN` in the operation (CONTRACTS s5); it is not an input.
 
 ## Shapes in order
-1. **Start** WSS listener (S1). 2. **Set Properties "Init"** (S2): `DPP_TENANT_ID`, `DPP_SUPPLIER_ID`, `DPP_CID` + fallback. 3. **Try/Catch** (S3).
+1. **Start** WSS listener (S1). 2. **Set Properties "Init"** (S2): `DPP_TENANT_ID`, `DPP_SUPPLIER_ID`, `DPP_CID` + fallback. 2a. **Decision "Tenant valid?"** (README S2a): `DPP_TENANT_ID` non-empty and matches `^TEN-[A-Z0-9]+$`; false -> E3 (`VALIDATION_ERROR`, HTTP 400, `correlation_id`) -> Notify -> Return Documents, NO ERP call. Never call the ERP without `X-Tenant-ID`. 3. **Try/Catch** (S3); if HTTP errors are thrown instead of returned, the Catch branch maps the status as in README "Two possible behaviours".
 4. Try: **Set Properties "ERP headers"**.
 5. **Connector** `SG_HTTP_MockERP` + `SG_HTTP_GET_PurchaseOrders`: GET, path `/erp/purchase-orders`, query parameters `supplier_id` = `DPP_SUPPLIER_ID`, `status` = static `OPEN`. Response profile `SG_JSON_ERP_PurchaseOrders_Response` (= `samples/get_purchase_orders.200.json`).
 6. **Decision** on HTTP status (S5).
