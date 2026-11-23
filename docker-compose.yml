@@ -37,6 +37,7 @@ services:
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173}
     volumes:
       - ./backend:/app
+      - ./data:/data:ro
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     depends_on:

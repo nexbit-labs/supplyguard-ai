@@ -155,3 +155,10 @@ LOGGING = {
     "handlers": {"console": {"class": "logging.StreamHandler"}},
     "root": {"handlers": ["console"], "level": env("LOG_LEVEL", default="INFO")},
 }
+
+# --- Execution retries (docs/CONTRACTS.md section 10, Execution.retryable) -------------------
+EXECUTION_MAX_RETRIES = env.int("EXECUTION_MAX_RETRIES", default=3)
+
+# --- Seed data (manage.py load_seed, docs/CONTRACTS.md section 10) ---------------------------
+# Folder with tenants.json, suppliers.json, ...; default is <repo>/data/seed.
+SEED_DATA_DIR = Path(env("SEED_DATA_DIR", default=str(BASE_DIR.parent / "data" / "seed")))

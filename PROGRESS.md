@@ -7,8 +7,8 @@
 | Member | Done | In progress | Review | Blocked | Pending | Overdue | % | Next |
 |---|---|---|---|---|---|---|---|---|
 | Roop | 1 | 0 | 3 | 0 | 8 | 0 | 8% | - |
-| Nikhil | 0 | 0 | 6 | 0 | 8 | 0 | 0% | N-11 |
-| Uday | 1 | 0 | 1 | 0 | 10 | 0 | 8% | U-07 |
+| Nikhil | 0 | 0 | 6 | 0 | 8 | 0 | 0% | N-07 |
+| Uday | 1 | 0 | 2 | 0 | 9 | 0 | 8% | U-04 |
 | Shared | 0 | 1 | 0 | 0 | 4 | 0 | 0% | S-01 |
 
 ## Task board
@@ -23,7 +23,7 @@
 | S-01 | Freeze contracts v1 | Shared | S0 (19-20 Nov) | in-progress | 0/3 | - |
 | U-01 | Boomi environment and service verification | Uday | S0 (19-20 Nov) | review | 3/3 | - |
 | U-02 | Backend scaffold | Uday | S0 (19-21 Nov) | done | 3/3 | 8dcf1b8 |
-| U-03 | Core data model + seed loader | Uday | S0 (21-23 Nov) | todo | 0/4 | - |
+| U-03 | Core data model + seed loader | Uday | S0 (21-23 Nov) | review | 4/4 | - |
 | N-04 | Deterministic impact + risk scoring engine | Nikhil | S1 (25-30 Nov) | review | 4/4 | - |
 | R-02 | Read APIs for the UI (Django `apps/portal`) | Roop | S1 (26-30 Nov) | todo | 0/3 | - |
 | R-09 | CI pipeline | Roop | S1 (24-26 Nov) | review | 0/1 | - |
@@ -89,23 +89,23 @@
 
 | Date | Commit | Member | Task | Status | Subject |
 |---|---|---|---|---|---|
-| 2026-11-23 | 48d7d6d | nikhil | N-07 | todo | merge: align N-07 task text with U-03 models |
+| 2026-11-23 | 2632881 | uday | U-03 | review | merge: U-03 Core data model + seed loader (auto-merge) |
+| 2026-11-23 | b814c8c | uday | U-03 | review | chore(tasks): U-03 to review - merge into collaboration on Uday's instruction |
+| 2026-11-23 | e65edfd | roop | R-10 | in-progress | docs(frontend): R-10 design direction for screen redesign |
+| 2026-11-23 | 4eceb8a | roop | R-10 | in-progress | merge: R-10 --foundation sub-branch into task branch |
 | 2026-11-23 | 81c1e51 | nikhil | N-07 | todo | docs(tasks): align N-07 with U-03 unsupported flag and AgentRun |
 | 2026-11-23 | f8626e8 | nikhil | N-04 | review | merge: N-04 Deterministic impact + risk scoring engine (auto-merge) |
+| 2026-11-23 | 48d7d6d | nikhil | N-07 | todo | merge: align N-07 task text with U-03 models |
+| 2026-11-23 | 4e8bd07 | uday | U-04 | in-progress | docs(contracts): add optional risk_thresholds.exposure_full_scale (v0.4 draft) |
 | 2026-11-23 | 1bf07fe | roop | R-10 | in-progress | feat(frontend): redesign app shell and login on the shadcn kit |
 | 2026-11-23 | c5015bf | roop | R-10 | in-progress | feat(frontend): adopt shadcn/ui kit and indigo/slate theme tokens |
 | 2026-11-23 | bccab55 | nikhil | N-04 | review | docs(tasks): N-04 impact engine to review |
 | 2026-11-23 | 400c940 | nikhil | N-04 | review | merge: N-04 Deterministic impact + risk scoring engine (auto-merge) |
 | 2026-11-23 | 2754189 | nikhil | N-04 | review | merge: N-04 task file to review |
 | 2026-11-23 | e0ab4a4 | nikhil | N-04 | in-progress | merge: N-04 design + impl pieces into task branch |
+| 2026-11-23 | 9c41a85 | uday | U-04 | in-progress | chore(tasks): start U-04 - plan table, design decisions and dependency catch |
 | 2026-11-23 | a85f296 | roop | R-10 | in-progress | chore(tasks): start R-10 shadcn redesign |
 | 2026-11-23 | 653bad7 | roop | R-10 | in-progress | merge: R-08-admin-screens into R-10 polish base |
 | 2026-11-23 | d0116c9 | roop | R-10 | in-progress | merge: R-07-what-if-ui into R-10 polish base |
 | 2026-11-23 | dfc4667 | roop | R-10 | in-progress | merge: R-05-approvals into R-10 polish base |
 | 2026-11-23 | 593c7fe | nikhil | N-04 | in-progress | feat(intelligence): N-04 impact + risk scoring engine |
-| 2026-11-23 | d05b25c | uday | U-05 | in-progress | chore(tasks): U-05 built and verified live, acceptance ticked, held at in-progress |
-| 2026-11-23 | 40b9007 | uday | U-05 | in-progress | merge: U-05 review fixes (fail-closed tenant, redaction, tenant mismatch, log ids) |
-| 2026-11-23 | 6044ee1 | uday | U-05 | in-progress | fix(audit): review + smoke findings (log ids on django.request, fail-closed tenant, redaction, tenant mismatch) |
-| 2026-11-23 | defa9a7 | nikhil | N-04 | in-progress | docs(intelligence): N-04 impact + risk scoring design spec |
-| 2026-11-23 | 4ebd50c | uday | U-05 | in-progress | merge: U-05 audit piece into uday/U-05-audit |
-| 2026-11-23 | c602d2f | uday | U-05 | in-progress | feat(audit): record(), correlation-id middleware, log filter, GET /audit, JSON 404/500 |
