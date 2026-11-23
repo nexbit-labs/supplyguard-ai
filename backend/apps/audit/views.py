@@ -5,30 +5,11 @@ from django.utils.dateparse import parse_date, parse_datetime
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import generics
 from rest_framework.exceptions import PermissionDenied, ValidationError
-from rest_framework.permissions import BasePermission
 
-from apps.tenants.models import Tenant
+from apps.accounts.permissions import NO_TENANT_MESSAGE, RolePermission
 
 from .models import AuditEvent
 from .serializers import AuditEventSerializer
-
-
-class HasActiveTenant(BasePermission):
-    """Authenticated user that belongs to an ACTIVE tenant.
-
-    PLACEHOLDER for U-04's role permission matrix (docs/CONTRACTS.md s2): until it lands, any
-    authenticated user with a tenant may read their own tenant's audit log. Unauthenticated
-    requests fall through to DRF's 401.
-    """
-
-    message = "No active tenant for this user."
-
-    def has_permission(self, request, view):
-        user = request.user
-        if not (user and user.is_authenticated):
-            return False
-        tenant = getattr(user, "tenant", None)
-        return tenant is not None and tenant.status == Tenant.Status.ACTIVE
 
 
 def _parse_moment(name: str, raw: str) -> datetime:
@@ -66,15 +47,16 @@ class AuditEventList(generics.ListAPIView):
     """Read-only, newest first. The tenant comes only from the authenticated user."""
 
     serializer_class = AuditEventSerializer
-    permission_classes = [HasActiveTenant]
+    permission_classes = [RolePermission]
+    permission_key = "audit.read"
 
     def get_queryset(self):
         # Never read a tenant from query/body. Fail closed: filter(tenant=None) would match
         # `tenant_id IS NULL`, so a missing tenant must never reach the query.
-        tid = getattr(self.request.user, "tenant_id", None)
-        if not tid:
-            raise PermissionDenied(HasActiveTenant.message)
-        qs = AuditEvent.objects.filter(tenant_id=tid)
+        tenant = getattr(self.request, "tenant", None)  # set from the credential only
+        if tenant is None:
+            raise PermissionDenied(NO_TENANT_MESSAGE)
+        qs = AuditEvent.objects.filter(tenant_id=tenant.pk)
         params = self.request.query_params
         if params.get("entity_type"):
             qs = qs.filter(entity_type=params["entity_type"])

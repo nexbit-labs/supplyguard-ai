@@ -8,6 +8,7 @@ from rest_framework.test import APIClient
 
 from apps.audit.models import AuditEvent
 from tests.factories import make_tenant, make_user
+from tests.helpers import jwt_client
 
 pytestmark = pytest.mark.django_db
 URL = "/api/v1/audit"
@@ -22,6 +23,8 @@ def mk(tenant, **kw):
 
 
 def client_for(user):
+    if isinstance(user, get_user_model()) and user.tenant_id:
+        return jwt_client(user)  # real authentication: request.tenant comes from the credential
     c = APIClient()
     c.force_authenticate(user)
     return c

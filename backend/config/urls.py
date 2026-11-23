@@ -13,6 +13,7 @@ urlpatterns = [
     # and is included here once it has endpoints.
     path("api/v1/", include("apps.core.urls")),
     path("api/v1/", include("apps.audit.urls")),
+    path("api/v1/", include("apps.accounts.urls")),
 ]
 
 # JSON error body (CONTRACTS s1) for /api/ paths; other paths keep Django's pages.

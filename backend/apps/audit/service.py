@@ -7,6 +7,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 
 from apps.accounts.ids import format_user_id
 from apps.accounts.models import User
+from apps.accounts.principals import SystemPrincipal
 from apps.tenants.models import Tenant
 
 from .context import get_correlation_id
@@ -90,6 +91,8 @@ def _resolve_tenant(explicit, entity_tenant, actor_tenant):
 
 
 def _actor_text(actor):
+    if isinstance(actor, SystemPrincipal):  # an API-key caller: `record(request.user, ...)`
+        return "SYSTEM", actor.tenant
     if isinstance(actor, User):
         if actor.pk is None:
             raise TypeError("actor User must be saved")

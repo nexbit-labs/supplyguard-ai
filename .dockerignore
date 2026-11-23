@@ -1,0 +1,15 @@
+.git
+.github
+.claude
+node_modules
+frontend
+mock-erp
+pgdata
+__pycache__
+*.pyc
+.pytest_cache
+.venv
+venv
+.env
+.env.*
+!.env.example

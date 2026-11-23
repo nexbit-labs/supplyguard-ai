@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import AdminUserCreationForm, UserChangeForm
 
-from .models import User
+from .models import ApiKey, User
 
 
 class TenantRequiredMixin:
@@ -43,3 +43,19 @@ class SupplyGuardUserAdmin(UserAdmin):
         *UserAdmin.add_fieldsets,
         ("SupplyGuard", {"fields": ("tenant", "role", "name", "email")}),
     )
+
+
+@admin.register(ApiKey)
+class ApiKeyAdmin(admin.ModelAdmin):
+    """Read-only except is_active. Keys are created with `manage.py create_api_key`."""
+
+    list_display = ("label", "prefix", "tenant", "is_active", "created_at", "last_used_at")
+    list_filter = ("tenant", "is_active")
+    fields = ("tenant", "label", "prefix", "key_hash", "is_active", "created_at", "last_used_at")
+    readonly_fields = ("tenant", "label", "prefix", "key_hash", "created_at", "last_used_at")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
