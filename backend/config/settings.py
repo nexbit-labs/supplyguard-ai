@@ -43,6 +43,11 @@ CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS")
 # Trust X-Forwarded-Proto only when explicitly behind an HTTPS proxy (else it can be spoofed).
 if env("BEHIND_HTTPS_PROXY"):
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = env.int("SECURE_HSTS_SECONDS", default=3600)
+    # SECURE_SSL_REDIRECT is deliberately not set: Render redirects already and a redirect
+    # would break the internal http health check.
 
 # --- Applications -----------------------------------------------------------------------
 # One shell per bounded area so teammates can add models/views without editing settings.

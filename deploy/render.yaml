@@ -6,6 +6,7 @@ databases:
     user: supplyguard
     postgresMajorVersion: "16"
     plan: free
+    ipAllowList: []   # no external connections; the backend uses the internal connection string
 
 services:
   - type: web
@@ -74,7 +75,7 @@ services:
       - key: VITE_API_BASE_URL
         sync: false            # https://supplyguard-backend.onrender.com/api/v1
       - key: VITE_API_MOCK
-        value: "false"
+        value: "false"          # set "true" only to demo the built-in mock API
     routes:
       - type: rewrite
         source: /*

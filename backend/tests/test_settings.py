@@ -18,6 +18,20 @@ def test_no_missing_migrations():
     call_command("makemigrations", "--check", "--dry-run")
 
 
+PROXY_ATTRS = (
+    "SECURE_PROXY_SSL_HEADER",
+    "SESSION_COOKIE_SECURE",
+    "CSRF_COOKIE_SECURE",
+    "SECURE_HSTS_SECONDS",
+)
+
+
+def _clear_proxy_attrs(monkeypatch):
+    # importlib.reload keeps attributes set by an earlier reload; remove them explicitly.
+    for name in PROXY_ATTRS:
+        monkeypatch.delattr(settings_module, name, raising=False)
+
+
 @pytest.fixture
 def reload_settings(monkeypatch):
     # settings.py re-reads <repo>/.env on every reload (read_env uses setdefault), which would
@@ -25,6 +39,9 @@ def reload_settings(monkeypatch):
     monkeypatch.setattr(environ.Env, "read_env", classmethod(lambda cls, *a, **k: None))
     yield lambda: importlib.reload(settings_module)
     monkeypatch.undo()
+    for name in PROXY_ATTRS:
+        if hasattr(settings_module, name):
+            delattr(settings_module, name)
     importlib.reload(settings_module)  # restore the test configuration
 
 
@@ -63,9 +80,33 @@ def test_csrf_trusted_origins_from_env(monkeypatch, reload_settings):
 
 
 def test_proxy_ssl_header_only_when_flagged(monkeypatch, reload_settings):
+    _clear_proxy_attrs(monkeypatch)
     monkeypatch.delenv("BEHIND_HTTPS_PROXY", raising=False)
     reload_settings()
     assert not hasattr(settings_module, "SECURE_PROXY_SSL_HEADER")
     monkeypatch.setenv("BEHIND_HTTPS_PROXY", "True")
     reload_settings()
     assert settings_module.SECURE_PROXY_SSL_HEADER == ("HTTP_X_FORWARDED_PROTO", "https")
+
+
+def test_secure_cookies_and_hsts_only_behind_proxy(monkeypatch, reload_settings):
+    _clear_proxy_attrs(monkeypatch)
+    monkeypatch.delenv("BEHIND_HTTPS_PROXY", raising=False)
+    reload_settings()
+    for name in ("SESSION_COOKIE_SECURE", "CSRF_COOKIE_SECURE", "SECURE_HSTS_SECONDS"):
+        assert not hasattr(settings_module, name)
+    monkeypatch.setenv("BEHIND_HTTPS_PROXY", "True")
+    monkeypatch.delenv("SECURE_HSTS_SECONDS", raising=False)
+    reload_settings()
+    assert settings_module.SESSION_COOKIE_SECURE is True
+    assert settings_module.CSRF_COOKIE_SECURE is True
+    assert settings_module.SECURE_HSTS_SECONDS == 3600
+    assert not getattr(settings_module, "SECURE_SSL_REDIRECT", False)
+
+
+def test_hsts_seconds_from_env(monkeypatch, reload_settings):
+    _clear_proxy_attrs(monkeypatch)
+    monkeypatch.setenv("BEHIND_HTTPS_PROXY", "True")
+    monkeypatch.setenv("SECURE_HSTS_SECONDS", "86400")
+    reload_settings()
+    assert settings_module.SECURE_HSTS_SECONDS == 86400
