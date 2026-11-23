@@ -13,8 +13,8 @@
 - **Current task:** N-06 (review; N-05 in review)
 - **Branch:** `nikhil/N-06-recovery-agent`
 - **Where I left off:** Agent "SG Recovery Planner" (id b5f2f51a-0b4e-41e6-998d-e04031f2a9d0) built in Agentstudio with prompt v1.3.0 and deployed 2026-11-20 (package 1.0, deployment 1142f95b-7b4a-466f-a895-89a2140068ac, Agent Garden Production, active). Six live v1.3.0 runs graded (DEMO 30/31, TC05 31/31, ADV-01 35/35, ADV-02 33/33, ADV-03 34/34, ADV-04 33/34). Known issue: `assumptions_qualitative` on SUP-2002 (capacity unknown) in DEMO and ADV-04.
-- **Next step:** optional prompt tweak adding an assumption template for capacity-unknown suppliers (the agent is already deployed, so a prompt change needs a new deploy). Calling it from Integration needs an Agent Control Tower account and an Agent Step (Uday's `boomi/processes/`). Then N-04 / N-07 per dependencies.
-- **Blockers:** U-03 for N-04; U-07 tools not built (agents have no tools).
+- **Next step:** N-04 engine in review. Next: give Uday the OK on CONTRACTS s10 point 7 (per-tenant `risk_thresholds.exposure_full_scale` in the Tenant settings shape), then N-04 service wiring after U-03 merges, then N-07 / N-11. Optional N-06 prompt tweak for capacity-unknown suppliers still open (needs a new deploy).
+- **Blockers:** U-03 not yet in collaboration (awaiting re-review + s10 approvals). U-07 tools not built (agents have no tools).
 ---
 
 ### N-01: Agent I/O JSON schemas + fixtures
@@ -58,18 +58,25 @@
 - **Notes:** Uday's U-07 (Boomi ERP reads) needs this by 25 Nov. Compose box ticks once Uday adds the service (snippet in `mock-erp/README.md`); image already builds/runs via `docker build -f mock-erp/Dockerfile .`. Extensions beyond CONTRACTS s5 (GET PO by id, shipments, X-Tenant-ID, PATCH body, INTERNAL_ERROR) listed for S-01.
 
 ### N-04: Deterministic impact + risk scoring engine
-- **Status:** todo
+- **Status:** review
 - **Sprint:** S1 (25-30 Nov) | **Est:** 3d | **Depends:** U-03, N-02
 - **Branch:** `nikhil/N-04-impact-engine`
 - **Model hint:** opus / high for the scoring design, sonnet / medium to implement + tests
 - **Deliverables:** `backend/apps/intelligence/impact.py`: event + ERP snapshot -> affected POs (affected_qty, estimated_delay, exposure_amount), inventory coverage per item, shortage flags, risk_score 0-100 with documented formula and tenant thresholds; service called by the `POST /internal/risk-cases` endpoint (endpoint shell in Uday's `integrations` app).
 - **Acceptance:**
-  - [ ] TC-03: multiple open POs all evaluated
-  - [ ] TC-04: sufficient inventory -> no shortage claimed
-  - [ ] Demo scenario numbers match `data/README.md`
-  - [ ] Pure functions, 90%+ line coverage on `impact.py`
+  - [x] TC-03: multiple open POs all evaluated
+  - [x] TC-04: sufficient inventory -> no shortage claimed
+  - [x] Demo scenario numbers match `data/README.md`
+  - [x] Pure functions, 90%+ line coverage on `impact.py`
 - **Done in:** -
-- **Notes:** -
+- **Notes:** Design spec: `backend/apps/intelligence/IMPACT_DESIGN.md`. Plan:
+  | piece | runs as | model / effort | branch |
+  |---|---|---|---|
+  | design spec | nested session | opus / medium | `nikhil/N-04-impact-engine--design` |
+  | impact.py + tests | nested session | sonnet / medium | `nikhil/N-04-impact-engine--impl` |
+  | service wiring to POST /internal/risk-cases | after U-03 | sonnet / medium | later |
+  | review | subagent reviewer-lite | sonnet / medium | - |
+  Engine done: `backend/apps/intelligence/impact.py` pure functions, 68 tests, 100% line coverage, reviewer APPROVE (commit e0ab4a4). Coverage is net of safety stock (data/README.md updated); exposure scale 500000 is a per-tenant threshold `risk_thresholds.exposure_full_scale` (Uday: add it to the Tenant settings shape in CONTRACTS s10). LEFT after U-03 merges: service `create_risk_case(tenant, event, snapshot)` that stores the full `compute_impact` output on RiskCase (risk_score, risk_level, total_exposure -> exposure_amount+currency, impact JSON, data_quality_flags, snapshot, snapshot_captured_at) and one AffectedPO per (po_id, item_id) (item_name from snapshot, due_date parsed, delay/coverage to Decimal); called by Uday's U-06 `POST /internal/risk-cases`. Minors from review: float in parse_window, `qualified_alternate_supplier_ids` name when unqualified allowed.
 
 ### N-05: Supplier Risk Analyst agent (Agentstudio)
 - **Status:** review

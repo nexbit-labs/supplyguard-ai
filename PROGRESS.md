@@ -7,7 +7,7 @@
 | Member | Done | In progress | Review | Blocked | Pending | Overdue | % | Next |
 |---|---|---|---|---|---|---|---|---|
 | Roop | 1 | 0 | 3 | 0 | 8 | 0 | 8% | - |
-| Nikhil | 0 | 0 | 5 | 0 | 9 | 0 | 0% | N-12 |
+| Nikhil | 0 | 0 | 6 | 0 | 8 | 0 | 0% | N-11 |
 | Uday | 1 | 0 | 1 | 0 | 10 | 0 | 8% | U-07 |
 | Shared | 0 | 1 | 0 | 0 | 4 | 0 | 0% | S-01 |
 
@@ -24,7 +24,7 @@
 | U-01 | Boomi environment and service verification | Uday | S0 (19-20 Nov) | review | 3/3 | - |
 | U-02 | Backend scaffold | Uday | S0 (19-21 Nov) | done | 3/3 | 8dcf1b8 |
 | U-03 | Core data model + seed loader | Uday | S0 (21-23 Nov) | todo | 0/4 | - |
-| N-04 | Deterministic impact + risk scoring engine | Nikhil | S1 (25-30 Nov) | todo | 0/4 | - |
+| N-04 | Deterministic impact + risk scoring engine | Nikhil | S1 (25-30 Nov) | review | 4/4 | - |
 | R-02 | Read APIs for the UI (Django `apps/portal`) | Roop | S1 (26-30 Nov) | todo | 0/3 | - |
 | R-09 | CI pipeline | Roop | S1 (24-26 Nov) | review | 0/1 | - |
 | U-04 | Auth, tenant isolation, RBAC, users + settings APIs | Uday | S1 (24-27 Nov) | todo | 0/3 | - |
@@ -74,8 +74,8 @@
 - **Current task:** N-06 (review; N-05 in review)
 - **Branch:** `nikhil/N-06-recovery-agent`
 - **Where I left off:** Agent "SG Recovery Planner" (id b5f2f51a-0b4e-41e6-998d-e04031f2a9d0) built in Agentstudio with prompt v1.3.0 and deployed 2026-11-20 (package 1.0, deployment 1142f95b-7b4a-466f-a895-89a2140068ac, Agent Garden Production, active). Six live v1.3.0 runs graded (DEMO 30/31, TC05 31/31, ADV-01 35/35, ADV-02 33/33, ADV-03 34/34, ADV-04 33/34). Known issue: `assumptions_qualitative` on SUP-2002 (capacity unknown) in DEMO and ADV-04.
-- **Next step:** optional prompt tweak adding an assumption template for capacity-unknown suppliers (the agent is already deployed, so a prompt change needs a new deploy). Calling it from Integration needs an Agent Control Tower account and an Agent Step (Uday's `boomi/processes/`). Then N-04 / N-07 per dependencies.
-- **Blockers:** U-03 for N-04; U-07 tools not built (agents have no tools).
+- **Next step:** N-04 engine in review. Next: give Uday the OK on CONTRACTS s10 point 7 (per-tenant `risk_thresholds.exposure_full_scale` in the Tenant settings shape), then N-04 service wiring after U-03 merges, then N-07 / N-11. Optional N-06 prompt tweak for capacity-unknown suppliers still open (needs a new deploy).
+- **Blockers:** U-03 not yet in collaboration (awaiting re-review + s10 approvals). U-07 tools not built (agents have no tools).
 
 ### Uday
 - **Last updated:** 2026-11-19 (U-02 done and merged, review follow-ups applied)
@@ -89,23 +89,23 @@
 
 | Date | Commit | Member | Task | Status | Subject |
 |---|---|---|---|---|---|
-| 2026-11-23 | 75dd368 | uday | U-01 | review | merge: U-01 Boomi environment and service verification (auto-merge) |
-| 2026-11-23 | e8f7b5a | uday | U-01 | review | docs(boomi): record vite-plugin-singlefile as the Flow hosting mechanism |
-| 2026-11-23 | 4f1b908 | uday | U-01 | review | docs(boomi): U-01 to review - no native Flow app, own accounts, follow-ups listed |
-| 2026-11-20 | cd470cf | nikhil | N-06 | review | merge: N-06 Recovery Planning agent (Agentstudio) (auto-merge) |
-| 2026-11-20 | da4b861 | nikhil | N-06 | review | Merge origin/collaboration into nikhil/N-06-recovery-agent |
-| 2026-11-20 | 49192fe | nikhil | N-06 | review | docs(agents): N-06 recovery planner deployed in Agentstudio |
-| 2026-11-20 | d288171 | nikhil | N-06 | review | feat(agents): N-06 recovery planner live v1.3.0 runs, set to review |
-| 2026-11-20 | 0de814d | nikhil | N-06 | in-progress | fix(agents): N-06 recovery planner prompt v1.3.0 text templates |
-| 2026-11-20 | 1709e47 | nikhil | N-06 | in-progress | fix(agents): N-06 recovery planner prompt v1.2.0 + v1.1.0 baseline runs |
-| 2026-11-20 | 52f5e6d | uday | U-01 | blocked | docs(boomi): U-01 - teammates use their own Boomi accounts, no invites |
-| 2026-11-20 | 84d3395 | roop | R-07 | review | chore(ci): re-trigger auto-merge for R-07 |
-| 2026-11-20 | 4693960 | roop | R-07 | review | chore(tasks): R-07 to review - land mock-built screens in collaboration |
-| 2026-11-20 | 58f20e2 | roop | R-04 | review | merge: R-04 Risk Command Center + case detail (auto-merge) |
-| 2026-11-20 | 6332e9b | roop | R-04 | review | chore(tasks): R-04 to review - land mock-built screens in collaboration |
-| 2026-11-20 | 76f38c8 | roop | R-03 | review | merge: R-03 Executive Overview + Supplier Intelligence screens (auto-merge) |
-| 2026-11-20 | 96efb0a | roop | R-03 | review | chore(tasks): R-03 to review - land mock-built screens in collaboration |
-| 2026-11-20 | a76c094 | nikhil | N-06 | in-progress | fix(agents): N-06 grader round 2 after re-review |
-| 2026-11-20 | 36db3ff | nikhil | N-06 | in-progress | fix(agents): N-06 grader + prompt v1.1.0 after Opus review |
-| 2026-11-20 | cd48e18 | nikhil | N-06 | in-progress | feat(agents): N-06 recovery planner design (prompt, schemas config, references, adversarial cases) |
-| 2026-11-20 | b25d951 | nikhil | N-06 | in-progress | feat(agents): N-06 recovery planner grader, RP payloads and tests |
+| 2026-11-23 | 2754189 | nikhil | N-04 | review | merge: N-04 task file to review |
+| 2026-11-23 | bccab55 | nikhil | N-04 | review | docs(tasks): N-04 impact engine to review |
+| 2026-11-23 | 400c940 | nikhil | N-04 | review | merge: N-04 Deterministic impact + risk scoring engine (auto-merge) |
+| 2026-11-23 | e0ab4a4 | nikhil | N-04 | in-progress | merge: N-04 design + impl pieces into task branch |
+| 2026-11-23 | a85f296 | roop | R-10 | in-progress | chore(tasks): start R-10 shadcn redesign |
+| 2026-11-23 | 653bad7 | roop | R-10 | in-progress | merge: R-08-admin-screens into R-10 polish base |
+| 2026-11-23 | d0116c9 | roop | R-10 | in-progress | merge: R-07-what-if-ui into R-10 polish base |
+| 2026-11-23 | dfc4667 | roop | R-10 | in-progress | merge: R-05-approvals into R-10 polish base |
+| 2026-11-23 | 593c7fe | nikhil | N-04 | in-progress | feat(intelligence): N-04 impact + risk scoring engine |
+| 2026-11-23 | d05b25c | uday | U-05 | in-progress | chore(tasks): U-05 built and verified live, acceptance ticked, held at in-progress |
+| 2026-11-23 | 40b9007 | uday | U-05 | in-progress | merge: U-05 review fixes (fail-closed tenant, redaction, tenant mismatch, log ids) |
+| 2026-11-23 | 6044ee1 | uday | U-05 | in-progress | fix(audit): review + smoke findings (log ids on django.request, fail-closed tenant, redaction, tenant mismatch) |
+| 2026-11-23 | defa9a7 | nikhil | N-04 | in-progress | docs(intelligence): N-04 impact + risk scoring design spec |
+| 2026-11-23 | 4ebd50c | uday | U-05 | in-progress | merge: U-05 audit piece into uday/U-05-audit |
+| 2026-11-23 | c602d2f | uday | U-05 | in-progress | feat(audit): record(), correlation-id middleware, log filter, GET /audit, JSON 404/500 |
+| 2026-11-23 | d6b06ed | uday | U-05 | in-progress | chore(tasks): start U-05 - plan table, design and the U-03 dependency catch |
+| 2026-11-23 | 71ee7b4 | uday | U-03 | in-progress | merge: U-03 re-review minors (migration placement, test coverage, admin fallback) |
+| 2026-11-23 | bf9037b | uday | U-03 | in-progress | fix(core): move User ordering to accounts 0002, restore save() in tenancy tests, instance fallback |
+| 2026-11-23 | 87aed4e | uday | U-03 | in-progress | chore(tasks): U-03 built and verified on Postgres, hand-offs recorded |
+| 2026-11-23 | 3c023a0 | uday | U-03 | in-progress | merge: U-03 review fixes into uday/U-03-core-models |
