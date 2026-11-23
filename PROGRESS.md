@@ -89,9 +89,14 @@
 
 | Date | Commit | Member | Task | Status | Subject |
 |---|---|---|---|---|---|
-| 2026-11-23 | 2754189 | nikhil | N-04 | review | merge: N-04 task file to review |
+| 2026-11-23 | 48d7d6d | nikhil | N-07 | todo | merge: align N-07 task text with U-03 models |
+| 2026-11-23 | 81c1e51 | nikhil | N-07 | todo | docs(tasks): align N-07 with U-03 unsupported flag and AgentRun |
+| 2026-11-23 | f8626e8 | nikhil | N-04 | review | merge: N-04 Deterministic impact + risk scoring engine (auto-merge) |
+| 2026-11-23 | 1bf07fe | roop | R-10 | in-progress | feat(frontend): redesign app shell and login on the shadcn kit |
+| 2026-11-23 | c5015bf | roop | R-10 | in-progress | feat(frontend): adopt shadcn/ui kit and indigo/slate theme tokens |
 | 2026-11-23 | bccab55 | nikhil | N-04 | review | docs(tasks): N-04 impact engine to review |
 | 2026-11-23 | 400c940 | nikhil | N-04 | review | merge: N-04 Deterministic impact + risk scoring engine (auto-merge) |
+| 2026-11-23 | 2754189 | nikhil | N-04 | review | merge: N-04 task file to review |
 | 2026-11-23 | e0ab4a4 | nikhil | N-04 | in-progress | merge: N-04 design + impl pieces into task branch |
 | 2026-11-23 | a85f296 | roop | R-10 | in-progress | chore(tasks): start R-10 shadcn redesign |
 | 2026-11-23 | 653bad7 | roop | R-10 | in-progress | merge: R-08-admin-screens into R-10 polish base |
@@ -104,8 +109,3 @@
 | 2026-11-23 | defa9a7 | nikhil | N-04 | in-progress | docs(intelligence): N-04 impact + risk scoring design spec |
 | 2026-11-23 | 4ebd50c | uday | U-05 | in-progress | merge: U-05 audit piece into uday/U-05-audit |
 | 2026-11-23 | c602d2f | uday | U-05 | in-progress | feat(audit): record(), correlation-id middleware, log filter, GET /audit, JSON 404/500 |
-| 2026-11-23 | d6b06ed | uday | U-05 | in-progress | chore(tasks): start U-05 - plan table, design and the U-03 dependency catch |
-| 2026-11-23 | 71ee7b4 | uday | U-03 | in-progress | merge: U-03 re-review minors (migration placement, test coverage, admin fallback) |
-| 2026-11-23 | bf9037b | uday | U-03 | in-progress | fix(core): move User ordering to accounts 0002, restore save() in tenancy tests, instance fallback |
-| 2026-11-23 | 87aed4e | uday | U-03 | in-progress | chore(tasks): U-03 built and verified on Postgres, hand-offs recorded |
-| 2026-11-23 | 3c023a0 | uday | U-03 | in-progress | merge: U-03 review fixes into uday/U-03-core-models |
