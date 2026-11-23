@@ -32,7 +32,7 @@ Money is `{"amount": "75.60", "currency": "INR"}` (string, 2 dp) everywhere. Eve
 - **Evaluated:** OPEN POs of the event's supplier, same tenant.
 - **Affected:** an evaluated PO with any line whose `due_date` is on or before the date the disruption ends (`event_time + expected_duration_hours`).
 - **Exposure:** sum of `qty * unit_price` over the affected lines.
-- **Inventory coverage (days):** `(on_hand - reserved) / daily_demand` per location.
+- **Inventory coverage (days):** `(on_hand - reserved - safety_stock) / daily_demand` per location (net of safety stock; gross without it is only informational).
 
 N-04 must reproduce these; delay estimate and risk score are N-04's to define.
 - **Overdue OPEN POs count as affected** (they are already late and get later). The random background data has ~40 of them; only matters for what-if (N-11) on non-anchor suppliers.
@@ -68,7 +68,7 @@ TC-07 really changes PO-1001 (moves it to SUP-2001). Call the mock ERP reset end
 | Open POs evaluated | 3 - PO-1001, PO-1002, PO-1003 (PO-1004 is RECEIVED, ignored) |
 | Affected open POs | 2 - PO-1001 (4000 x ITM-501, due +1 day), PO-1002 (2500 x ITM-501, due +2 days) |
 | Exposure | INR 491,400.00 (6500 x 75.60) |
-| Inventory | ITM-501 DC-PUNE covers 1.5 days (< 2-day outage -> shortage); DC-CHENNAI covers 4.7 days (transfer candidate) |
+| Inventory | ITM-501 DC-PUNE covers 1.00 day (< 2-day outage -> shortage); DC-CHENNAI covers 3.33 days (transfer candidate). Coverage = `(on_hand - reserved - safety_stock) / daily_demand` (net of safety stock; N-04 decision) |
 | Alternate suppliers | 2 - SUP-2001 (qualified, 2 days, 84.00, 5000/week), SUP-2002 (qualified, 5 days, 79.50, capacity unknown) |
 | Rank-1 option cost delta | INR 33,600.00 = (84.00 - 75.60) x 4000 (CONTRACTS section 6 example) |
 | SUP-1008 capacity | null (agents must report it as missing data) |
@@ -80,7 +80,7 @@ TC-07 really changes PO-1001 (moves it to SUP-2001). Call the mock ERP reset end
 | `tc01_valid_event.json` | TC-01 | SUP-1015 | accepted, correlated, case created | PO-1005 | 310,312.00 |
 | `tc02_unknown_supplier.json` | TC-02 | SUP-9999 | flagged, no impact | - | - |
 | `tc03_multiple_open_pos.json` | TC-03 | SUP-1020 | 6 open POs evaluated, 5 affected | PO-1007..PO-1011 | 537,649.00 |
-| `tc04_inventory_sufficient.json` | TC-04 | SUP-1030 | ITM-530 covers ~47 days vs 3-day outage: no shortage | PO-1013, PO-1014 | 1,468,775.00 |
+| `tc04_inventory_sufficient.json` | TC-04 | SUP-1030 | ITM-530 covers ~42.5 days (net of safety stock) vs 3-day outage: no shortage | PO-1013, PO-1014 | 1,468,775.00 |
 | `tc05_no_alternates.json` | TC-05 | SUP-1040 | ITM-540: no alternates, no other stock, supplier capacity unknown -> no validated alternative (`ALTERNATE_SUPPLIER`, `INVENTORY_TRANSFER`, `SPLIT_ORDER` unsupported; a `REVISED_SCHEDULE` that admits the shortage is acceptable) | PO-1015 | 474,384.00 |
 | `tc06_reject.json` | TC-06 | SUP-1008 | `decision: REJECT` -> no ERP write | as demo | as demo |
 | `tc07_approve.json` | TC-07 | SUP-1008 | `decision: APPROVE` -> ERP write captured | as demo | as demo |
