@@ -142,17 +142,27 @@
 - **Notes:** -
 
 ### N-10: Workflow app - state machine + decisions
-- **Status:** todo
+- **Status:** review
 - **Sprint:** S3 (8-11 Dec) | **Est:** 2d | **Depends:** U-03, U-04, U-05
 - **Branch:** `nikhil/N-10-state-machine`
 - **Model hint:** opus / high design, sonnet / medium implement
 - **Deliverables:** `backend/apps/workflow/services.py` `transition()` enforcing CONTRACTS section 7; `POST /recommendations/{id}/decision` with role check (`PROCUREMENT_MANAGER` only), creates Approval, triggers execution (U-10) only on APPROVE; every transition audited.
 - **Acceptance:**
-  - [ ] Table-driven test covering every allowed and forbidden transition
-  - [ ] TC-06: reject -> no execution call, comments audited
-  - [ ] OPS_MANAGER / VIEWER cannot decide (403)
+  - [x] Table-driven test covering every allowed and forbidden transition
+  - [x] TC-06: reject -> no execution call, comments audited
+  - [x] OPS_MANAGER / VIEWER cannot decide (403)
 - **Done in:** -
-- **Notes:** Roop's R-05 and R-06 need this by 11 Dec.
+- **Notes:** Roop's R-05 and R-06 need this by 11 Dec. Design spec: `backend/apps/workflow/WORKFLOW_DESIGN.md`. Plan:
+  | piece | runs as | model / effort | branch |
+  |---|---|---|---|
+  | design spec | nested session | opus / medium | `nikhil/N-10-state-machine--design` |
+  | services + decision API + tests | nested session | sonnet / medium | `nikhil/N-10-state-machine--impl` |
+  | review | subagent reviewer | opus / high | - |
+  **Built (branch `nikhil/N-10-state-machine--impl`):** `apps/workflow/{states,exceptions,services,hooks,serializers,views,urls}.py` + `workflow_resume_pending` command. `transition()` (16-edge table, row lock, status + audit in one transaction, idempotent repeat, `analysis_round`/`recovered_at` handled by the edge), `record_decision()`, `start_execution/dispatch_execution/retry_execution/record_execution_result`, `close_case/reanalyze_case`, Execution/Analysis trigger interfaces with logging+audit stubs. 181 workflow tests, 96% coverage on `apps/workflow/`; whole backend 854 passed; `scripts/run_checks.py` all PASS. Concurrency tests (spec s5.5, Postgres only) NOT written.
+  **Decisions:** Q1 yes: decision API needs a human PROCUREMENT_MANAGER JWT, API key = 403, so R-06 must call with the approving user's token. Q2: service functions only (no HTTP); PM and ADMIN may close, re-analysing a REJECTED case is PM only; endpoint proposal `POST /risk-cases/{id}/close` and `/reanalyze` is in the spec for the CONTRACTS freeze. Q3 yes: ANALYZING -> CLOSED is the 16th edge (manual, PM or ADMIN, reason required).
+  **Edits in Uday's files (tell Uday):** (1) `apps/accounts/permissions.py`: `recommendations.decision` now `routed=True`. (2) `tests/test_role_matrix.py`: row added to `EXPECTED_ROUTED` and `ROUTES`, plus `EXTRA_OK = {"recommendations.decision": {404}}` (allowed role on an unknown id reaches the lookup). (3) `config/urls.py`: include `apps.workflow.urls` under `api/v1/`. (4) `apps/core/exceptions.py`: a dict `exc.details` becomes `error.details` (3 lines). (5) `config/settings.py`: `WORKFLOW_EXECUTION_TRIGGER`, `WORKFLOW_ANALYSIS_TRIGGER` (env, default stubs).
+  **What others call:** R-05/R-06: `POST /api/v1/recommendations/{id}/decision` `{decision, comments}` with the user JWT (comments required for REJECT/REQUEST_CHANGES); 201 body has `execution_id`; retries get 409 `ALREADY_DECIDED` / `CASE_NOT_PENDING_APPROVAL` = already recorded; `error.details.reason` carries the code. U-10: implement `apps.workflow.hooks.ExecutionTrigger.trigger(ExecutionRequest)` and set `WORKFLOW_EXECUTION_TRIGGER`; the result endpoint calls `services.record_execution_result(execution, outcome="SUCCEEDED"|"FAILED", attempt=<ExecutionRequest.attempt>, error_class=, error=, response_status=, response_payload=, actor=request.user)`; U-11 retry endpoint calls `services.retry_execution(execution, actor=request.user)`; `start_execution` runs by itself via on_commit after an APPROVE. N-07: persist, then `transition(case, RECOMMENDATION_READY, actor=request.user, reason=...)` then PENDING_APPROVAL or CLOSED (spec s4.2); N-04: `transition(case, ANALYZING, actor="SYSTEM", reason=...)` in the same atomic as case creation; N-09: implement `AnalysisTrigger.request_analysis(AnalysisRequest)`, set `WORKFLOW_ANALYSIS_TRIGGER`. Never save RiskCase `status` directly.
+  **Opus review fixes (2nd commit):** `attempt` is now REQUIRED on results: U-10 must echo `ExecutionRequest.attempt` back in `POST /internal/executions/{id}/result` (U-11 result schema), anything other than `retry_count + 1` gets 409 `STALE_EXECUTION_RESULT`. `record_decision` itself refuses non-PM (403). Same-state `transition()` still checks the actor. `dispatch_execution` skips unless case EXECUTING and execution RUNNING. After-commit steps log instead of raising (a pending execution is left for `workflow_resume_pending`). Uday-file edits changed: `apps/core/exceptions.py` now reads `exc.contract_details` (only workflow errors set it); `config/settings.py` rejects trigger paths outside `apps.` at startup; added `test_workflow_trigger_settings_must_be_inside_apps` to `tests/test_settings.py`. Postgres concurrency tests are in `tests/test_workflow_concurrency.py` (skipped on SQLite) and were NOT run: no Postgres/Docker daemon available locally.
 
 ### N-11: What-if simulator backend
 - **Status:** review

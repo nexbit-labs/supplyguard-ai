@@ -52,7 +52,7 @@ ROLE_MATRIX: dict[str, Rule] = {
     "dashboard.read": _rule({"GET": _READERS}, routed=False),
     "risk-cases.read": _rule({"GET": _READERS}, routed=False),
     "what-if": _rule({"POST": (ADMIN, PROCUREMENT_MANAGER, OPS_MANAGER)}),
-    "recommendations.decision": _rule({"POST": (PROCUREMENT_MANAGER,)}, routed=False),
+    "recommendations.decision": _rule({"POST": (PROCUREMENT_MANAGER,)}),
     "executions.retry": _rule({"POST": (PROCUREMENT_MANAGER,)}, routed=False),
     "events.create": _rule({"POST": (SYSTEM, ADMIN)}, routed=False),
     "demo.simulate": _rule({"POST": (ADMIN,)}, routed=False),

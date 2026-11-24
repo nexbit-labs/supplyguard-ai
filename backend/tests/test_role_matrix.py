@@ -54,7 +54,7 @@ EXPECTED = {
     "integrations.status": {"GET": {"ADMIN"}},
 }
 EXPECTED_ROUTED = {"me.read", "settings.read", "settings.write", "users.read", "users.write",
-                   "audit.read", "what-if"}  # keys that have a real endpoint today; add when routed
+                   "audit.read", "recommendations.decision", "what-if"}  # real endpoints today
 
 # permission_key -> (path, body factory or None). One entry per ROUTED matrix row.
 ROUTES = {
@@ -64,11 +64,19 @@ ROUTES = {
     "users.read": (API + "users", None),
     "users.write": (API + "users", _user_body),
     "audit.read": (API + "audit", None),
+    # An id that does not exist: wrong roles get 403 before the lookup, the allowed role reaches
+    # the lookup and gets 404 (see EXTRA_OK). Real decision flows: test_workflow_decision_api.py.
+    "recommendations.decision": (
+        API + "recommendations/REC-NONE/decision",
+        lambda: {"decision": "APPROVE"},
+    ),
     "what-if": (
         API + "what-if",
         lambda: {"supplier_id": "SUP-1008", "duration_days": 2, "event_type": "FACTORY_OUTAGE"},
     ),
 }
+EXTRA_OK = {"recommendations.decision": {404}}  # allowed role + unknown id
+
 
 
 @pytest.fixture(autouse=True)
@@ -160,7 +168,8 @@ def test_matrix_every_routed_row_for_every_principal(principal):
         allowed = principal in EXPECTED[key][method]
         where = f"{principal} {method} {path} ({key})"
         if allowed:
-            assert response.status_code in OK, f"{where}: {response.status_code}"
+            ok = OK | EXTRA_OK.get(key, set())
+            assert response.status_code in ok, f"{where}: {response.status_code}"
         else:
             assert response.status_code == 403, f"{where}: {response.status_code}"
             assert response.json()["error"]["code"] == "FORBIDDEN"
