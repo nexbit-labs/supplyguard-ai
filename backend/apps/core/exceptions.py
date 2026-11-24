@@ -17,6 +17,7 @@ CODE_BY_STATUS = {
     404: "NOT_FOUND",
     409: "CONFLICT",
     422: "BUSINESS_RULE",
+    429: "RATE_LIMITED",
     502: "DOWNSTREAM_ERROR",
     504: "DOWNSTREAM_TIMEOUT",
 }
@@ -26,6 +27,10 @@ def _correlation_id(request) -> str:
     """Reuse the request's correlation id (U-05 middleware sets `request.correlation_id`),
     else a well-formed `X-Correlation-ID` header, else mint a new one."""
     candidate = getattr(request, "correlation_id", None)
+    if not candidate:
+        from apps.audit.context import get_correlation_id
+
+        candidate = get_correlation_id()
     if not candidate and request is not None:
         candidate = request.META.get("HTTP_X_CORRELATION_ID")
     try:
@@ -52,7 +57,8 @@ def contract_exception_handler(exc, context):
     else:
         detail = response.data.get("detail") if isinstance(response.data, dict) else None
         message = str(detail) if detail else str(exc)
-        details = {}
+        details = getattr(exc, "contract_details", None)  # workflow reason codes (N-10)
+        details = dict(details) if isinstance(details, dict) else {}
 
     response.data = {
         "error": {

@@ -61,6 +61,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    # First, so every response (including errors from later middleware) carries the id.
+    "apps.audit.middleware.CorrelationIdMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -125,15 +127,42 @@ CORS_EXPOSE_HEADERS = ["X-Correlation-ID"]
 # --- DRF / JWT / OpenAPI --------------------------------------------------------------------
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "apps.accounts.authentication.TenantJWTAuthentication",
+        "apps.accounts.authentication.ApiKeyAuthentication",
     ],
-    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
+    # Only the login and refresh views are throttled (scopes below). Each gunicorn worker counts
+    # separately (LocMemCache); see backend/README.md.
+    "DEFAULT_THROTTLE_RATES": {
+        "auth": env("AUTH_THROTTLE_RATE", default="10/min"),  # /auth/token per client IP
+        "auth_username": env("AUTH_USERNAME_THROTTLE_RATE", default="10/min"),  # per username
+        "auth_refresh": env("AUTH_REFRESH_THROTTLE_RATE", default="60/min"),  # /auth/refresh
+        # Event intake and the demo trigger, per credential (apps/integrations/throttles.py).
+        "events": env("EVENTS_THROTTLE_RATE", default="300/min"),
+        "simulate": env("SIMULATE_THROTTLE_RATE", default="10/min"),
+    },
+    # Number of trusted reverse proxies in front of Django (0 = none, 1 = behind the U-12
+    # proxy). The client IP for throttles and failed-credential counters is read from
+    # X-Forwarded-For only up to this depth, so a spoofed header cannot mint new buckets.
+    "NUM_PROXIES": env.int("NUM_PROXIES", default=0),
+    # Secure by default: a view without `permission_key` is refused (403). Views that are
+    # meant to be public (login, health, schema) say so explicitly.
+    "DEFAULT_PERMISSION_CLASSES": ["apps.accounts.permissions.RolePermission"],
+    # JSON that is nested absurdly deep is a 400, not a RecursionError (500).
+    "DEFAULT_PARSER_CLASSES": [
+        "apps.core.parsers.SafeJSONParser",
+        "rest_framework.parsers.FormParser",
+        "rest_framework.parsers.MultiPartParser",
+    ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 25,
     # docs/CONTRACTS.md section 1: one error body shape for every API error.
     "EXCEPTION_HANDLER": "apps.core.exceptions.contract_exception_handler",
 }
+
+# Failed-credential guards (apps/accounts/failguard.py), per client IP per minute.
+AUTH_FAIL_AUDIT_PER_MIN = env.int("AUTH_FAIL_AUDIT_PER_MIN", default=10)  # max audit rows
+AUTH_FAIL_LIMIT_PER_MIN = env.int("AUTH_FAIL_LIMIT_PER_MIN", default=30)  # then 429
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=env.int("JWT_ACCESS_MINUTES", default=30)),
@@ -152,6 +181,70 @@ SPECTACULAR_SETTINGS = {
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "filters": {"correlation_id": {"()": "apps.audit.logfilter.CorrelationIdFilter"}},
+    "formatters": {
+        "default": {
+            "format": "%(asctime)s %(levelname)s [%(correlation_id)s] %(name)s: %(message)s"
+        }
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "filters": ["correlation_id"],
+            "formatter": "default",
+        }
+    },
     "root": {"handlers": ["console"], "level": env("LOG_LEVEL", default="INFO")},
+    # httpx logs every request URL at INFO; keep them (and any credential in a URL) out.
+    "loggers": {
+        "httpx": {"level": "WARNING"},
+        "httpcore": {"level": "WARNING"},
+    },
 }
+
+# --- Execution retries (docs/CONTRACTS.md section 10, Execution.retryable) -------------------
+EXECUTION_MAX_RETRIES = env.int("EXECUTION_MAX_RETRIES", default=3)
+
+# --- Workflow triggers (N-10): dotted paths; U-10 / N-09 replace the logging stubs ----------------
+WORKFLOW_EXECUTION_TRIGGER = env(
+    "WORKFLOW_EXECUTION_TRIGGER", default="apps.workflow.hooks.StubExecutionTrigger"
+)
+WORKFLOW_ANALYSIS_TRIGGER = env(
+    "WORKFLOW_ANALYSIS_TRIGGER", default="apps.workflow.hooks.StubAnalysisTrigger"
+)
+
+for _name in ("WORKFLOW_EXECUTION_TRIGGER", "WORKFLOW_ANALYSIS_TRIGGER"):
+    if not globals()[_name].startswith("apps."):
+        from django.core.exceptions import ImproperlyConfigured
+
+        raise ImproperlyConfigured(f"{_name} must be a dotted path inside 'apps.'")
+
+# --- Seed data (manage.py load_seed, docs/CONTRACTS.md section 10) ---------------------------
+# Folder with tenants.json, suppliers.json, ...; default is <repo>/data/seed.
+SEED_DATA_DIR = Path(env("SEED_DATA_DIR", default=str(BASE_DIR.parent / "data" / "seed")))
+
+# --- Boomi (U-06; docs/BOOMI_ENV.md) ---------------------------------------------------------
+# Empty BOOMI_BASE_URL = not configured: events are stored but not published.
+BOOMI_BASE_URL = env("BOOMI_BASE_URL", default="").strip()
+BOOMI_API_KEY = env("BOOMI_API_KEY", default="")  # secret: never log it
+# 'apikey' -> X-Api-Key header; 'basic' -> BOOMI_API_KEY is 'user:password' (HTTP Basic).
+BOOMI_AUTH_MODE = env("BOOMI_AUTH_MODE", default="apikey").strip().lower()
+# PLACEHOLDER path until U-08/U-09 define the real Boomi listener / gateway route.
+BOOMI_EVENT_PATH = env("BOOMI_EVENT_PATH", default="/ws/simple/createDisruptionEvent")
+BOOMI_TIMEOUT_CONNECT = env.float("BOOMI_TIMEOUT_CONNECT", default=3)
+BOOMI_TIMEOUT_READ = env.float("BOOMI_TIMEOUT_READ", default=5)
+BOOMI_MAX_RETRIES = env.int("BOOMI_MAX_RETRIES", default=1)
+# Budget for ALL attempts and backoffs of one publish (it runs inside the intake request).
+BOOMI_TOTAL_TIMEOUT_SECONDS = env.float("BOOMI_TOTAL_TIMEOUT_SECONDS", default=8)
+BOOMI_BACKOFF_SECONDS = env.float("BOOMI_BACKOFF_SECONDS", default=0.5)
+
+# Folder with the demo scenarios (data/scenarios); /data/scenarios inside Docker.
+SCENARIO_DIR = Path(env("SCENARIO_DIR", default=str(BASE_DIR.parent / "data" / "scenarios")))
+
+# --- ERP read access for the what-if simulator (N-11, apps/intelligence/whatif.py) ------------
+# Base URL of the (mock) ERP; X-Api-Key is sent only when ERP_API_KEY is set. Timeout is per call.
+ERP_BASE_URL = env("ERP_BASE_URL", default="http://localhost:8081")
+ERP_API_KEY = env("ERP_API_KEY", default="")
+ERP_TIMEOUT_SECONDS = env.float("ERP_TIMEOUT_SECONDS", default=2.0)
+# Total budget for all (sequential) ERP calls of one what-if; when used up the answer is 504.
+ERP_TOTAL_TIMEOUT_SECONDS = env.float("ERP_TOTAL_TIMEOUT_SECONDS", default=2.5)

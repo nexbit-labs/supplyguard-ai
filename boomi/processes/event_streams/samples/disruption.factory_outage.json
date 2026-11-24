@@ -1,0 +1,12 @@
+{
+  "event_id": "EVT-000123",
+  "tenant_id": "TEN-ACME",
+  "supplier_id": "SUP-1008",
+  "event_type": "FACTORY_OUTAGE",
+  "severity": "HIGH",
+  "event_time": "2026-12-02T10:15:00Z",
+  "expected_duration_hours": 48,
+  "description": "Line 2 fire, production halted",
+  "source_system": "supplier-portal",
+  "correlation_id": "6f1c0a52-3b8e-4d7a-9c1e-2a5f7b9d4e10"
+}

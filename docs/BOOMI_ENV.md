@@ -92,6 +92,8 @@ Contracts (event shape, API, schemas) do not change - only where a step runs.
 |---|---|---|
 | `BOOMI_BASE_URL` | Gateway / listener base URL Django calls | U-06, U-09 |
 | `BOOMI_API_KEY` | API Management key (or listener basic-auth user:password if fallback) | U-06, U-09 |
+| `BOOMI_AUTH_MODE` | `basic` (listener basic auth) or `apikey` (API Management key) | U-06, U-08, U-09 |
+| `BOOMI_BASE_URL` in Docker | `http://host.docker.internal:9090` when Django runs in a container and the Boomi runtime is on the same PC (the runtime host name does not resolve inside containers) | U-06, U-08 |
 | Boomi platform API user + token | Only if we script deployments via the AtomSphere API | optional |
 
 ## 7. Verification log
@@ -99,6 +101,7 @@ Contracts (event shape, API, schemas) do not change - only where a step runs.
 | Date | Who | What was checked | Result |
 |---|---|---|---|
 | 2026-11-19 | Claude (read-only, signed in as Uday) | Home service list; Runtime Management; Settings > Account Information, Licensing, Features, User Management; open each service page; `flow.boomi.com` | Section 1-4 above. Not checked: expiry date, internet reachability, extensions. Nothing created or changed. |
+| 2026-11-24 | Claude (browser pane, user signed in) | U-08 Event Streams + listeners: topics, subscription, packaged and deployed `SG_Publish_Event` / `SG_Subscribe_Disruption` to BIMBA-OPCUA-Test; Basic auth on the Shared Web Server; Django end to end (simulate -> publisher -> topic -> subscriber); shipment.delay routing (v5.0) | Works; details and test rows in `boomi/TEST_LOG.md` and the U-08 block of `tasks/UDAY.md`. Publish-to-subscriber took 2-3 s, not the 2 s target (see section 8). |
 
 ## 8. Constraints found (affect later tasks)
 
@@ -106,6 +109,10 @@ Contracts (event shape, API, schemas) do not change - only where a step runs.
 - **Component Locking is OFF and Branching is OFF:** two people editing the same Boomi process can overwrite each other. Agree one editor per process (follows the folder ownership in CLAUDE.md) and keep the `boomi/` exports in git as the backup.
 - **Shared account:** keep SupplyGuard components in their own folder (e.g. `SupplyGuard`) away from the BIMBA folders, and prefix names `SG_`.
 - **Uday's PC is the runtime:** if `ESI-PC28` is off or asleep, every Boomi test run fails. Keep it awake during demos and sprint-end checks.
+- **Event Streams is the Starter edition:** 120,000 messages per year and 2 routes per environment; a subscription has only a name and description; the connection takes only the Environment Token; the produce operation takes static message properties only, so `correlation_id` travels in the message body. Budget messages for load tests.
+- **Shared Web Server (the listener):** runs on the runtime PC, port 9090, http. Authentication is Basic and the user name is `<name>@<accountId>` (for example `supplyguard-django@trainingvisinigiriudaykir-VL9DS4`); the password is a token generated under Shared Web Server > User Management. After creating a user or generating a token, save and choose "restart the plugin now", otherwise the call still returns 401. Tokens go only to `.env` and a password manager, never git or chat; rotate after demos.
+- **The listener exposes no request headers and no HTTP status to the process:** the Boomi property picker lists no properties for the Web Services Server connector. So an `Idempotency-Key` / `X-Correlation-ID` header cannot be read, and a rejection cannot be a 400 (an Exception shape returns HTTP 500). Header and tenant checks belong at the API Management gateway (U-09) and in Django; the process takes the correlation id from the body.
+- **Publish to subscriber latency is 2-3 s, not 2 s:** the Event Streams produce call alone takes about 2-3 s on this setup (Process Reporting elapsed 0:02-0:03), and the subscriber runs about 1 s after. Quote "about 3 s" for the demo, or move the runtime nearer to the Event Streams region if the 2 s target must be met.
 
 ## 9. Other team accounts (Roop, Nikhil)
 

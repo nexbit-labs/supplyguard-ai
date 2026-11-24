@@ -1,0 +1,14 @@
+{
+  "event_id": "EVT-000124",
+  "tenant_id": "TEN-ACME",
+  "supplier_id": "SUP-1001",
+  "event_type": "SHIPMENT_DELAY",
+  "severity": "MEDIUM",
+  "event_time": "2026-12-02T11:00:00Z",
+  "expected_duration_hours": 72,
+  "description": "Port congestion, container held",
+  "source_system": "logistics-feed",
+  "correlation_id": "0b8d2c64-7e1f-4a39-8d55-c3a1e6f90b27",
+  "shipment_id": "SHP-0001",
+  "po_id": "PO-1024"
+}

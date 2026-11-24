@@ -44,3 +44,16 @@ def test_empty_secret_key_falls_back_only_in_debug(monkeypatch, reload_settings)
     monkeypatch.setenv("SECRET_KEY", "")
     reload_settings()
     assert settings_module.SECRET_KEY == "dev-insecure-secret-key"
+
+
+def test_workflow_trigger_settings_must_be_inside_apps():
+    import os
+    import subprocess
+    import sys
+
+    env = dict(os.environ, WORKFLOW_EXECUTION_TRIGGER="os.system", SECRET_KEY="x", DEBUG="False")
+    env.setdefault("DATABASE_URL", "sqlite:///:memory:")
+    done = subprocess.run(
+        [sys.executable, "-c", "import config.settings"], env=env, capture_output=True, text=True
+    )
+    assert done.returncode != 0 and "WORKFLOW_EXECUTION_TRIGGER" in done.stderr
