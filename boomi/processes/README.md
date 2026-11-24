@@ -58,6 +58,9 @@ The Web Services Server listener gives the process NO request headers and NO way
 - **Tenant is still validated in the process** (S2a regex, error body, no ERP call). Calling the ERP without `X-Tenant-ID` stays forbidden.
 - The HTTP Client side is unaffected: the ERP's status and headers are readable and `X-Tenant-ID` / `X-Api-Key` / `X-Correlation-ID` are still sent to the ERP.
 
+## Build simplification (2026-11-24): one request profile, no maps
+To keep the build small, the four processes share ONE request profile `SG_JSON_Get_Request` (`correlation_id`, `tenant_id`, `supplier_id`, `item_id`; the caller sends only the fields its process needs) and do NOT use per-process maps or response profiles. The HTTP Client operations return the ERP JSON as a raw document and a **Message** shape wraps it: supplier = `{"correlation_id":"{1}","supplier":{2}}`, lists = the ERP `count` and `results` with `correlation_id` added (Message or a one-line Data Process script), where `{1}` = `DPP_CID` and `{2}` = Current Data. The output is the same canonical JSON as in `profiles/*.response.json`; the ERP field names are passed through unchanged, so there is no mapping to review. Error documents stay Message shapes (E1/E2/E3).
+
 ## Shared build pattern (all four processes follow it; each spec lists only what differs)
 
 Common steps, referenced from the specs as S1..S6:
