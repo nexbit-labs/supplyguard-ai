@@ -54,12 +54,12 @@ ROLE_MATRIX: dict[str, Rule] = {
     "what-if": _rule({"POST": (ADMIN, PROCUREMENT_MANAGER, OPS_MANAGER)}),
     "recommendations.decision": _rule({"POST": (PROCUREMENT_MANAGER,)}),
     "executions.retry": _rule({"POST": (PROCUREMENT_MANAGER,)}, routed=False),
-    "events.create": _rule({"POST": (SYSTEM, ADMIN)}, routed=False),
-    "demo.simulate": _rule({"POST": (ADMIN,)}, routed=False),
-    "internal.risk-cases": _rule({"POST": (SYSTEM,)}, routed=False),
+    "events.create": _rule({"POST": (SYSTEM, ADMIN)}),
+    "demo.simulate": _rule({"POST": (ADMIN,)}),
+    "internal.risk-cases": _rule({"POST": (SYSTEM,)}),
     "internal.analysis": _rule({"POST": (SYSTEM,)}, routed=False),
-    "internal.execution-result": _rule({"POST": (SYSTEM,)}, routed=False),
-    "integrations.status": _rule({"GET": (ADMIN,)}, routed=False),
+    "internal.execution-result": _rule({"POST": (SYSTEM,)}),
+    "integrations.status": _rule({"GET": (ADMIN,)}),
 }
 
 
