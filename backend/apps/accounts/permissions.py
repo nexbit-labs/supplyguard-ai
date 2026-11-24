@@ -38,7 +38,7 @@ def _rule(methods, routed=True):
 _READERS = (ADMIN, PROCUREMENT_MANAGER, OPS_MANAGER, VIEWER)
 
 ROLE_MATRIX: dict[str, Rule] = {
-    # --- routed by U-04 ---
+    # --- routed by U-04 (what-if: routed by N-11) ---
     "me.read": _rule({"GET": _READERS}),
     "settings.read": _rule({"GET": (ADMIN,)}),
     "settings.write": _rule({"PATCH": (ADMIN,)}),
@@ -51,7 +51,7 @@ ROLE_MATRIX: dict[str, Rule] = {
     "suppliers.read": _rule({"GET": _READERS}, routed=False),
     "dashboard.read": _rule({"GET": _READERS}, routed=False),
     "risk-cases.read": _rule({"GET": _READERS}, routed=False),
-    "what-if": _rule({"POST": (ADMIN, PROCUREMENT_MANAGER, OPS_MANAGER)}, routed=False),
+    "what-if": _rule({"POST": (ADMIN, PROCUREMENT_MANAGER, OPS_MANAGER)}),
     "recommendations.decision": _rule({"POST": (PROCUREMENT_MANAGER,)}, routed=False),
     "executions.retry": _rule({"POST": (PROCUREMENT_MANAGER,)}, routed=False),
     "events.create": _rule({"POST": (SYSTEM, ADMIN)}, routed=False),
