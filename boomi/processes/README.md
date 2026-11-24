@@ -51,6 +51,13 @@ CONTRACTS section 1 says a system caller's credential maps to a tenant and tenan
 - (c) Mitigation planned in U-09: the API Management proxy / key policy binds each credential to one tenant and rejects a body `tenant_id` that does not match (403); the listener is not exposed publicly (only the runtime host / proxy can reach it).
 - (d) This is a conscious deviation from CONTRACTS section 1 until U-09 lands. CONTRACTS is not edited here. Uday: confirm or choose an alternative (e.g. one listener credential per tenant now).
 
+## Listener limits found in U-08 (2026-11-24) - these override the steps below where they differ
+The Web Services Server listener gives the process NO request headers and NO way to set the HTTP response status (the Boomi property picker lists no properties for the Web Services Server connector; an Exception shape returns HTTP 500). So:
+- **No HTTP status from the listener.** Wherever a step below says "listener HTTP status 400/404/502/504", ignore it: the listener always answers HTTP 200. Errors are returned as the CONTRACTS section 1 error body (`{"error":{...,"correlation_id":...}}`) with HTTP 200, and **callers must check for the `error` key** (N-08, the Agentstudio tools). The U-09 gateway can map the `error.code` to a real status.
+- **No inbound `X-Correlation-ID` header.** `DPP_CID` = body `correlation_id`, else a generated Unique Value. Skip the header fallback.
+- **Tenant is still validated in the process** (S2a regex, error body, no ERP call). Calling the ERP without `X-Tenant-ID` stays forbidden.
+- The HTTP Client side is unaffected: the ERP's status and headers are readable and `X-Tenant-ID` / `X-Api-Key` / `X-Correlation-ID` are still sent to the ERP.
+
 ## Shared build pattern (all four processes follow it; each spec lists only what differs)
 
 Common steps, referenced from the specs as S1..S6:
