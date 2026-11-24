@@ -95,7 +95,7 @@ EXPECTED_ROUTED = {
     "me.read", "settings.read", "settings.write", "users.read", "users.write", "audit.read",
     "events.create", "demo.simulate", "integrations.status",
     "internal.risk-cases", "internal.execution-result",
-    "recommendations.decision", "what-if",
+    "recommendations.decision", "what-if", "internal.analysis",
 }
 
 # permission_key -> (path, body factory or None). One entry per ROUTED matrix row.
@@ -118,12 +118,17 @@ ROUTES = {
         API + "recommendations/REC-NONE/decision",
         lambda: {"decision": "APPROVE"},
     ),
+    "internal.analysis": (
+        API + "internal/risk-cases/RC-NONE/analysis",
+        lambda: {"kind": "RECOVERY_PLAN", "payload": {}},
+    ),
     "what-if": (
         API + "what-if",
         lambda: {"supplier_id": "SUP-1008", "duration_days": 2, "event_type": "FACTORY_OUTAGE"},
     ),
 }
-EXTRA_OK = {"recommendations.decision": {404}}  # allowed role + unknown id
+# allowed role + unknown id
+EXTRA_OK = {"recommendations.decision": {404}, "internal.analysis": {404}}
 
 
 @pytest.fixture(autouse=True)
