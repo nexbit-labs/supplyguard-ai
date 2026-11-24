@@ -14,5 +14,16 @@ testpaths = ["tests", "apps"]
 env = [
     "SECRET_KEY=test-secret-key-not-for-production",
     "DEBUG=False",
+    # Pinned (no D: prefix) so tests do not depend on the environment, e.g. U-12 sets
+    # NUM_PROXIES=1 in the container; these are the values the throttle/failure tests assume.
+    "NUM_PROXIES=0",
+    "AUTH_FAIL_AUDIT_PER_MIN=10",
+    "AUTH_FAIL_LIMIT_PER_MIN=30",
+    "AUTH_THROTTLE_RATE=10/min",
+    "AUTH_USERNAME_THROTTLE_RATE=10/min",
+    "AUTH_REFRESH_THROTTLE_RATE=60/min",
+    # Pinned high so the suite is unthrottled; dedicated tests lower them.
+    "EVENTS_THROTTLE_RATE=100000/min",
+    "SIMULATE_THROTTLE_RATE=100000/min",
     "D:DATABASE_URL=sqlite:///:memory:",
 ]

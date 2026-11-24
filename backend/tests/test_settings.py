@@ -110,3 +110,15 @@ def test_hsts_seconds_from_env(monkeypatch, reload_settings):
     monkeypatch.setenv("SECURE_HSTS_SECONDS", "86400")
     reload_settings()
     assert settings_module.SECURE_HSTS_SECONDS == 86400
+
+def test_workflow_trigger_settings_must_be_inside_apps():
+    import os
+    import subprocess
+    import sys
+
+    env = dict(os.environ, WORKFLOW_EXECUTION_TRIGGER="os.system", SECRET_KEY="x", DEBUG="False")
+    env.setdefault("DATABASE_URL", "sqlite:///:memory:")
+    done = subprocess.run(
+        [sys.executable, "-c", "import config.settings"], env=env, capture_output=True, text=True
+    )
+    assert done.returncode != 0 and "WORKFLOW_EXECUTION_TRIGGER" in done.stderr

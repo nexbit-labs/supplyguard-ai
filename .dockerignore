@@ -1,11 +1,17 @@
-# Applies to builds with context "." (mock-erp). Keep data/ and mock-erp/.
+# Shared by every build with context "." (backend and mock-erp).
+# mock-erp builds need mock-erp/ and data/, so they are NOT ignored here; the backend Dockerfile
+# copies only backend/ and ai/ explicitly, so the rest of the context is harmless.
 .git
+.github
+.claude
 **/node_modules
 **/.venv
+venv
 **/__pycache__
 **/*.pyc
+.pytest_cache
+pgdata
 frontend
-.claude
 **/.env
 **/.env.*
 !**/.env.example

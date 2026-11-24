@@ -76,7 +76,7 @@
   | impact.py + tests | nested session | sonnet / medium | `nikhil/N-04-impact-engine--impl` |
   | service wiring to POST /internal/risk-cases | after U-03 | sonnet / medium | later |
   | review | subagent reviewer-lite | sonnet / medium | - |
-  Engine done: `backend/apps/intelligence/impact.py` pure functions, 68 tests, 100% line coverage, reviewer APPROVE (commit e0ab4a4). Coverage is net of safety stock (data/README.md updated); exposure scale 500000 is a per-tenant threshold `risk_thresholds.exposure_full_scale` (Uday: add it to the Tenant settings shape in CONTRACTS s10). LEFT after U-03 merges: service `create_risk_case(tenant, event, snapshot)` that stores the full `compute_impact` output on RiskCase (risk_score, risk_level, total_exposure -> exposure_amount+currency, impact JSON, data_quality_flags, snapshot, snapshot_captured_at) and one AffectedPO per (po_id, item_id) (item_name from snapshot, due_date parsed, delay/coverage to Decimal); called by Uday's U-06 `POST /internal/risk-cases`. Minors from review: float in parse_window, `qualified_alternate_supplier_ids` name when unqualified allowed.
+  Engine done: `backend/apps/intelligence/impact.py` pure functions, 68 tests, 100% line coverage, reviewer APPROVE (commit e0ab4a4). Coverage is net of safety stock (data/README.md updated); exposure scale 500000 is a per-tenant threshold `risk_thresholds.exposure_full_scale` (Uday: add it to the Tenant settings shape in CONTRACTS s10). LEFT after U-03 merges: service `create_risk_case(tenant, event, snapshot)` that stores the full `compute_impact` output on RiskCase (risk_score, risk_level, total_exposure -> exposure_amount+currency, impact JSON, data_quality_flags, snapshot, snapshot_captured_at) and one AffectedPO per (po_id, item_id) (item_name from snapshot, due_date parsed, delay/coverage to Decimal); called by Uday's U-06 `POST /internal/risk-cases`. Minors from review: float in parse_window, `qualified_alternate_supplier_ids` name when unqualified allowed. Service done: `services.create_risk_case()` persists RiskCase + AffectedPO (commit f5f08f6); the endpoint is Uday's U-06. Review fixes: `create_risk_case()` returns `(case, created)` (`(None, False)` for zero affected POs or an unknown supplier, `(existing, False)` on repeat). U-06 must map `services.TenantMismatch` and `impact.SnapshotError` (both `ValueError`; also plain `ValueError` for a bad event/threshold) to 4xx; nothing is written on any of them. Coverage over 9,999,999.99 is stored as null + flag `COVERAGE_OUT_OF_RANGE`; snapshot currency != tenant currency adds flag `CURRENCY_MISMATCH`.
 
 ### N-05: Supplier Risk Analyst agent (Agentstudio)
 - **Status:** review
@@ -142,29 +142,39 @@
 - **Notes:** -
 
 ### N-10: Workflow app - state machine + decisions
-- **Status:** todo
+- **Status:** review
 - **Sprint:** S3 (8-11 Dec) | **Est:** 2d | **Depends:** U-03, U-04, U-05
 - **Branch:** `nikhil/N-10-state-machine`
 - **Model hint:** opus / high design, sonnet / medium implement
 - **Deliverables:** `backend/apps/workflow/services.py` `transition()` enforcing CONTRACTS section 7; `POST /recommendations/{id}/decision` with role check (`PROCUREMENT_MANAGER` only), creates Approval, triggers execution (U-10) only on APPROVE; every transition audited.
 - **Acceptance:**
-  - [ ] Table-driven test covering every allowed and forbidden transition
-  - [ ] TC-06: reject -> no execution call, comments audited
-  - [ ] OPS_MANAGER / VIEWER cannot decide (403)
+  - [x] Table-driven test covering every allowed and forbidden transition
+  - [x] TC-06: reject -> no execution call, comments audited
+  - [x] OPS_MANAGER / VIEWER cannot decide (403)
 - **Done in:** -
-- **Notes:** Roop's R-05 and R-06 need this by 11 Dec.
+- **Notes:** Roop's R-05 and R-06 need this by 11 Dec. Design spec: `backend/apps/workflow/WORKFLOW_DESIGN.md`. Plan:
+  | piece | runs as | model / effort | branch |
+  |---|---|---|---|
+  | design spec | nested session | opus / medium | `nikhil/N-10-state-machine--design` |
+  | services + decision API + tests | nested session | sonnet / medium | `nikhil/N-10-state-machine--impl` |
+  | review | subagent reviewer | opus / high | - |
+  **Built (branch `nikhil/N-10-state-machine--impl`):** `apps/workflow/{states,exceptions,services,hooks,serializers,views,urls}.py` + `workflow_resume_pending` command. `transition()` (16-edge table, row lock, status + audit in one transaction, idempotent repeat, `analysis_round`/`recovered_at` handled by the edge), `record_decision()`, `start_execution/dispatch_execution/retry_execution/record_execution_result`, `close_case/reanalyze_case`, Execution/Analysis trigger interfaces with logging+audit stubs. 181 workflow tests, 96% coverage on `apps/workflow/`; whole backend 854 passed; `scripts/run_checks.py` all PASS. Concurrency tests (spec s5.5, Postgres only) NOT written.
+  **Decisions:** Q1 yes: decision API needs a human PROCUREMENT_MANAGER JWT, API key = 403, so R-06 must call with the approving user's token. Q2: service functions only (no HTTP); PM and ADMIN may close, re-analysing a REJECTED case is PM only; endpoint proposal `POST /risk-cases/{id}/close` and `/reanalyze` is in the spec for the CONTRACTS freeze. Q3 yes: ANALYZING -> CLOSED is the 16th edge (manual, PM or ADMIN, reason required).
+  **Edits in Uday's files (tell Uday):** (1) `apps/accounts/permissions.py`: `recommendations.decision` now `routed=True`. (2) `tests/test_role_matrix.py`: row added to `EXPECTED_ROUTED` and `ROUTES`, plus `EXTRA_OK = {"recommendations.decision": {404}}` (allowed role on an unknown id reaches the lookup). (3) `config/urls.py`: include `apps.workflow.urls` under `api/v1/`. (4) `apps/core/exceptions.py`: a dict `exc.details` becomes `error.details` (3 lines). (5) `config/settings.py`: `WORKFLOW_EXECUTION_TRIGGER`, `WORKFLOW_ANALYSIS_TRIGGER` (env, default stubs).
+  **What others call:** R-05/R-06: `POST /api/v1/recommendations/{id}/decision` `{decision, comments}` with the user JWT (comments required for REJECT/REQUEST_CHANGES); 201 body has `execution_id`; retries get 409 `ALREADY_DECIDED` / `CASE_NOT_PENDING_APPROVAL` = already recorded; `error.details.reason` carries the code. U-10: implement `apps.workflow.hooks.ExecutionTrigger.trigger(ExecutionRequest)` and set `WORKFLOW_EXECUTION_TRIGGER`; the result endpoint calls `services.record_execution_result(execution, outcome="SUCCEEDED"|"FAILED", attempt=<ExecutionRequest.attempt>, error_class=, error=, response_status=, response_payload=, actor=request.user)`; U-11 retry endpoint calls `services.retry_execution(execution, actor=request.user)`; `start_execution` runs by itself via on_commit after an APPROVE. N-07: persist, then `transition(case, RECOMMENDATION_READY, actor=request.user, reason=...)` then PENDING_APPROVAL or CLOSED (spec s4.2); N-04: `transition(case, ANALYZING, actor="SYSTEM", reason=...)` in the same atomic as case creation; N-09: implement `AnalysisTrigger.request_analysis(AnalysisRequest)`, set `WORKFLOW_ANALYSIS_TRIGGER`. Never save RiskCase `status` directly.
+  **Opus review fixes (2nd commit):** `attempt` is now REQUIRED on results: U-10 must echo `ExecutionRequest.attempt` back in `POST /internal/executions/{id}/result` (U-11 result schema), anything other than `retry_count + 1` gets 409 `STALE_EXECUTION_RESULT`. `record_decision` itself refuses non-PM (403). Same-state `transition()` still checks the actor. `dispatch_execution` skips unless case EXECUTING and execution RUNNING. After-commit steps log instead of raising (a pending execution is left for `workflow_resume_pending`). Uday-file edits changed: `apps/core/exceptions.py` now reads `exc.contract_details` (only workflow errors set it); `config/settings.py` rejects trigger paths outside `apps.` at startup; added `test_workflow_trigger_settings_must_be_inside_apps` to `tests/test_settings.py`. Postgres concurrency tests are in `tests/test_workflow_concurrency.py` (skipped on SQLite) and were NOT run: no Postgres/Docker daemon available locally.
 
 ### N-11: What-if simulator backend
-- **Status:** todo
+- **Status:** review
 - **Sprint:** S3 (11-14 Dec) | **Est:** 1.5d | **Depends:** N-04
 - **Branch:** `nikhil/N-11-what-if`
 - **Model hint:** sonnet / medium
 - **Deliverables:** `POST /what-if` (supplier_id, duration_days, event_type) and `POST /risk-cases/{id}/what-if`; reuses impact engine on a fresh snapshot; returns affected POs, inventory gaps, exposure, best option estimate, assumptions; no DB writes except an audit row.
 - **Acceptance:**
-  - [ ] "Supplier A out for 7 days" returns in < 3 s on seed data
-  - [ ] Response labels everything as estimate + lists assumptions (AC-03)
+  - [x] "Supplier A out for 7 days" returns in < 3 s on seed data
+  - [x] Response labels everything as estimate + lists assumptions (AC-03)
 - **Done in:** -
-- **Notes:** -
+- **Notes:** Built: `backend/apps/intelligence/{whatif,views,serializers,urls}.py`; `what-if` matrix row routed; settings `ERP_BASE_URL` (http://localhost:8081), `ERP_API_KEY`, `ERP_TIMEOUT_SECONDS` (2.0 per call), `ERP_TOTAL_TIMEOUT_SECONDS` (2.5 for all calls, then 504); `httpx` in requirements. Roles: ADMIN, PROCUREMENT_MANAGER, OPS_MANAGER; VIEWER and API keys 403. Tenant from JWT, ERP called with `X-Tenant-ID`; a foreign or unknown supplier/case = 404 (a foreign supplier also writes `security.cross_tenant_denied`); snapshot rows with a missing/other tenant_id, bad ERP data (SnapshotError) and ERP 5xx = 502 `DOWNSTREAM_ERROR`; timeout = 504 `DOWNSTREAM_TIMEOUT`. One `what_if.run` audit row per successful call, no other writes. **R-07 shapes.** `POST /api/v1/what-if` body `{supplier_id:'SUP-1008', duration_days: 1..90 int, event_type: FACTORY_OUTAGE|SHIPMENT_DELAY|QUALITY_HOLD|CAPACITY_REDUCTION|LOGISTICS_DISRUPTION, start?: ISO datetime (default now)}`; `POST /api/v1/risk-cases/{id}/what-if` body `{duration_days?, start?}` (start defaults to the case event time, duration to the event's; duration required if the event has none). 200 response: `estimate:true`, `disclaimer`, `labels{...:'ESTIMATE'}`, `scenario{supplier_id,supplier_name,event_type,severity,duration_days,duration_hours,start,end,risk_case_id|null,source:'REQUEST'|'RISK_CASE'}`, `affected_pos[]` (po_id,item_id,line_nos,due_date,affected_qty,estimated_delay_days,exposure_amount{amount,currency},inventory_coverage_days,shortage), `inventory{gaps[],items[],coverage[]}`, `exposure`, `estimated_delay_days`, `shortage`, `risk{score,level,components}`, `best_option_estimate{is_estimate,rule,items[{item_id,affected_qty,status:RECOMMENDED|COVERED_BY_STOCK|NO_OPTION,recommended{option_type:ALTERNATE_SUPPLIER|INVENTORY_TRANSFER,...}|null,note,data_gap}],uncovered_item_ids,total_estimated_cost_delta,cost_delta_complete,max_lead_time_days}|null`, `assumptions[]`, `data_gaps[]`. Demo for the UI: `start: 2026-12-02T10:15:00Z`, 7 days -> PO-1001 + PO-1002, INR 491,400.00, score 83 HIGH, ~0.55 s. Without `start` the window begins now, so against the seed a short outage may touch no PO (stated in `data_gaps`). Typed scenarios derive severity from duration (<=3 d MEDIUM, <=14 d HIGH, else CRITICAL); case-based ones copy the case severity. Alternate capacity (units/week) is compared with the whole affected qty like N-04 (stated in assumptions). CONTRACTS gaps: no what-if request/response shape in s4 (this Notes is the spec), VIEWER excluded per matrix while s2 only names OPS_MANAGER, `ERP_*` env names new.
 
 ### N-12: Data Hub supplier golden record (OPTIONAL)
 - **Status:** todo

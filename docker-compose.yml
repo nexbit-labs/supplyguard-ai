@@ -17,7 +17,9 @@ services:
       retries: 10
 
   backend:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     # Dev-only stack: runserver auto-reloads and serves admin static files (gunicorn does not).
     # The backend/Dockerfile CMD is production gunicorn (non-root); see deploy/.
     command: >
@@ -43,9 +45,12 @@ services:
       # Placeholder for later tasks (ERP executor); harmless until used.
       MOCK_ERP_URL: ${MOCK_ERP_URL:-http://mock-erp:8081}
       MOCK_ERP_API_KEY: ${MOCK_ERP_API_KEY:-}
+
+      SG_SCHEMA_DIR: /app/ai/schemas
     volumes:
       - ./backend:/app
       - ./data:/data:ro
+      - ./ai:/app/ai:ro
     ports:
       - "127.0.0.1:${BACKEND_PORT:-8000}:8000"
     depends_on:
