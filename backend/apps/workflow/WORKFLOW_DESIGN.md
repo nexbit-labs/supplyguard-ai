@@ -379,6 +379,8 @@ In one `atomic()`:
    `transition(case, PENDING_APPROVAL, actor=request.user, reason="options ready for approval")` (T3),
    else `transition(case, CLOSED, actor=request.user, reason="no viable option: " + reason)` (T4).
 
+**As built (N-07 persist, AC-07):** the case lock is held for the whole call, but the work runs as an AgentRun insert followed by a SAVEPOINT for steps 4-6. If the savepoint fails (data error, a refused transition), only it is rolled back; the AgentRun commits (raw output is always kept) and the caller gets a 422 `AGENT_OUTPUT_NOT_APPLIED` (or the transition's own error). A duplicate or late call never reaches the insert: it sees the new status under the lock and gets 409 with nothing written. `round` is required in the request body; a mismatch is 409 `STALE_ROUND`. A repeated rank is a plan-level validation error (422).
+
 T2 and T3/T4 are two transitions (two audit rows) in one transaction; the UI never sees
 RECOMMENDATION_READY as a resting state in the normal path, but the audit trail shows it (AC-07).
 If Flow (R-06) later needs to create the approval task between T2 and T3, T3 moves to Flow's

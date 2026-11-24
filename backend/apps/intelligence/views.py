@@ -14,10 +14,19 @@ from apps.audit import record
 from apps.core.models import RiskCase, Supplier
 from apps.core.tenancy import CROSS_TENANT_ACTION, TenantScopedMixin
 
-from . import impact, whatif
-from .serializers import CaseWhatIfRequestSerializer, WhatIfRequestSerializer
+from . import impact, services, whatif
+from .exceptions import AnalysisInvalid, PayloadTooLarge
+from .parsers import StrictJSONParser
+from .serializers import (
+    AnalysisRequestSerializer,
+    AnalysisResponseSerializer,
+    CaseWhatIfRequestSerializer,
+    WhatIfRequestSerializer,
+)
 
 logger = logging.getLogger(__name__)
+
+_AUDITED_FAILURES = frozenset({400, 403, 404, 409, 413, 422})
 
 
 class DownstreamError(APIException):
@@ -204,3 +213,109 @@ class CaseWhatIfView(TenantScopedMixin, generics.GenericAPIView):
         )
         _audit(request, request.tenant, case, body)
         return Response(body)
+
+
+@extend_schema(
+    request=AnalysisRequestSerializer,
+    responses={201: AnalysisResponseSerializer},
+    summary="Store and validate one agent output (SYSTEM only)",
+)
+class AnalysisView(TenantScopedMixin, generics.GenericAPIView):
+    """POST /internal/risk-cases/{id}/analysis (N-07). SYSTEM API key only; tenant from the key.
+
+    Every outcome of an authenticated call leaves one audit row: `analysis.recorded` (201),
+    `analysis.invalid` (422, the AgentRun is stored) or `analysis.rejected` (400/403/404/409/413/
+    422-not-applied).
+    """
+
+    permission_classes = [RolePermission]
+    permission_key = "internal.analysis"
+    serializer_class = AnalysisRequestSerializer
+    pagination_class = None
+    queryset = RiskCase.objects.select_related("event")
+    lookup_field = "id"
+    lookup_url_kwarg = "case_id"
+    max_body_bytes = 1024 * 1024
+    max_errors_echoed = 50
+    parser_classes = [StrictJSONParser]
+    _audited = False
+
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)  # authentication + role check first
+        try:
+            length = int(request.META.get("CONTENT_LENGTH") or 0)
+        except ValueError:
+            length = 0
+        if length > self.max_body_bytes:
+            raise PayloadTooLarge()
+
+    def _audit_failure(self, exc, response):
+        if self._audited or response.status_code not in _AUDITED_FAILURES:
+            return
+        tenant = getattr(self.request, "tenant", None)
+        user = self.request.user
+        if tenant is None or not getattr(user, "is_authenticated", False):
+            return
+        data = {"status_code": response.status_code, "method": self.request.method}
+        details = getattr(exc, "details", None)
+        if isinstance(details, dict) and "reason" in details:
+            data["reason"] = details["reason"]
+        try:
+            record(
+                user,
+                "analysis.rejected",
+                ("RiskCase", str(self.kwargs.get("case_id", ""))[:100]),
+                tenant=tenant,
+                data=data,
+            )
+            self._audited = True
+        except Exception:  # an audit problem must not change the answer
+            logger.exception("analysis.rejected audit failed")
+
+    def handle_exception(self, exc):
+        response = super().handle_exception(exc)
+        self._audit_failure(exc, response)
+        return response
+
+    def post(self, request, case_id):
+        case = self.get_object()  # tenant-scoped: foreign or missing -> 404
+        data = self.get_serializer(data=request.data)
+        data.is_valid(raise_exception=True)
+        v = data.validated_data
+        result = services.record_analysis(
+            tenant=request.tenant,
+            case=case,
+            kind=v["kind"],
+            payload=v["payload"],
+            actor=request.user,
+            correlation_id=getattr(request, "correlation_id", None),
+            round=v["round"],
+        )
+        record(
+            request.user,
+            "analysis.recorded" if result.valid else "analysis.invalid",
+            case,
+            tenant=request.tenant,
+            data={
+                "kind": v["kind"],
+                "round": v["round"],
+                "agent_run_id": result.agent_run.pk,
+                "valid": result.valid,
+                "actionable_count": result.actionable_count,
+                "case_status": result.status,
+                "error_count": len(result.validation_errors),
+            },
+        )
+        self._audited = True
+        if not result.valid:
+            raise AnalysisInvalid(result, limit=self.max_errors_echoed)
+        body = {
+            "agent_run_id": result.agent_run.pk,
+            "valid": True,
+            "actionable_count": result.actionable_count,
+            "risk_case_id": case.pk,
+            "case_status": result.status,
+            "analysis_round": case.analysis_round,
+            "recommendation_ids": [r.pk for r in result.recommendations],
+        }
+        return Response(AnalysisResponseSerializer(body).data, status=201)

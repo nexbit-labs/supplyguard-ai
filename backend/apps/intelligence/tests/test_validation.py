@@ -335,6 +335,7 @@ def test_revised_schedule_checks(plan, demo):
 def test_duplicate_rank(plan, demo):
     plan["options"][1]["rank"] = 1
     r = run_plan(plan, demo)
+    assert not r["valid"] and "DUPLICATE_RANK" in {e["code"] for e in r["fact_errors"]}
     assert "DUPLICATE_RANK" in codes(r, 1)
     assert r["options"][0]["unsupported"] and r["options"][1]["unsupported"]
 
@@ -708,3 +709,16 @@ def test_risk_free_text_capacity_claims(analysis, demo, text):
 def test_risk_capacity_gap_statement_is_fine(analysis, demo):
     analysis["facts"].append("Supplier capacity is not provided in the snapshot.")
     assert run_risk(analysis, demo)["valid"]
+
+
+def test_out_of_range_numbers_are_unsupported(plan, demo):
+    opt(plan, 1)["estimated_lead_time_days"] = 10**12
+    opt(plan, 2)["estimated_cost_delta"] = {"amount": "1000000000000000.00", "currency": "INR"}
+    r = run_plan(plan, demo)
+    assert "VALUE_OUT_OF_RANGE" in codes(r, 1) and "VALUE_OUT_OF_RANGE" in codes(r, 2)
+
+
+def test_rank_out_of_range_is_a_plan_error(plan, demo):
+    opt(plan, 1)["rank"] = 10**12
+    r = run_plan(plan, demo)
+    assert not r["valid"] and "RANK_OUT_OF_RANGE" in {e["code"] for e in r["fact_errors"]}

@@ -34,7 +34,7 @@
 | U-12 | Local + hosted deployment | Uday | S1 tunnel (by 28 Nov), S4 hosted (15-20 Dec) | todo | 0/3 | - |
 | N-05 | Supplier Risk Analyst agent (Agentstudio) | Nikhil | S2 (1-4 Dec) | review | 3/3 | - |
 | N-06 | Recovery Planning agent (Agentstudio) | Nikhil | S2 (3-6 Dec) | review | 3/3 | - |
-| N-07 | Agent output validator + persistence | Nikhil | S2 (4-7 Dec) | review | 2/3 | - |
+| N-07 | Agent output validator + persistence | Nikhil | S2 (4-7 Dec) | review | 3/3 | - |
 | N-08 | Boomi correlation + impact orchestration process | Nikhil | S2 (3-7 Dec) | todo | 0/2 | - |
 | N-09 | Agent invocation wiring + offline fallback | Nikhil | S2-S3 (6-10 Dec) | todo | 0/2 | - |
 | R-03 | Executive Overview + Supplier Intelligence screens | Roop | S2 (1-5 Dec) | review | 0/1 | - |
@@ -89,6 +89,14 @@
 
 | Date | Commit | Member | Task | Status | Subject |
 |---|---|---|---|---|---|
+| 2026-11-24 | 5bf25fa | nikhil | N-07 | review | merge: N-07 persistence + /analysis endpoint into task branch |
+| 2026-11-24 | 8c73e15 | nikhil | N-07 | review | merge: N-07 Agent output validator + persistence (auto-merge) |
+| 2026-11-24 | 82d5b6b | nikhil | N-07 | review | merge: origin/nikhil/N-07-validator (U-06) into N-07 persist |
+| 2026-11-24 | 1393dd8 | nikhil | N-07 | review | fix(intelligence): N-07 parser hardening |
+| 2026-11-24 | 15d2b93 | uday | S-01 | blocked | docs(contracts): drop stale 'needs Nikhil's agreement', fix TC-02 wording, add freeze follow-ups (section 11) |
+| 2026-11-24 | 9faffaa | uday | U-12 | in-progress | chore(tasks): U-12 - merged collaboration, compose re-verified, render.yaml follow-up recorded |
+| 2026-11-24 | 90fae5f | nikhil | N-07 | review | fix(intelligence): N-07 persist review fixes |
+| 2026-11-24 | bd2285d | uday | U-12 | in-progress | merge: collaboration (U-03..U-06, N-04..N-11, root-context backend build) into uday/U-12-deploy |
 | 2026-11-24 | f90aba0 | uday | U-06 | review | merge: U-06 Event intake + Boomi client (Django `apps/integrations`) (auto-merge) |
 | 2026-11-24 | 3714322 | uday | U-06 | review | chore(tasks): U-06 to review - acceptance ticked, evidence and the unreviewed-round-4 caveat |
 | 2026-11-24 | c4bd65b | nikhil | N-07 | review | feat(intelligence): persist validated agent output + analysis endpoint (N-07) |
@@ -101,11 +109,3 @@
 | 2026-11-24 | c5c2b36 | uday | U-06 | in-progress | feat(integrations): callbacks use N-10 transition and record_execution_result |
 | 2026-11-24 | 35afaba | uday | U-06 | in-progress | merge: collaboration (N-10 workflow, N-11 what-if) into uday/U-06-event-intake |
 | 2026-11-24 | 0e17ad7 | uday | U-06 | in-progress | merge: U-06 callbacks piece (internal risk-cases and execution-result) into uday/U-06-event-intake |
-| 2026-11-24 | fbd7ca0 | nikhil | N-10 | review | fix(workflow): reseed IdSequence in Postgres concurrency tests |
-| 2026-11-24 | ab07ae2 | nikhil | N-10 | review | merge: N-10 Workflow app - state machine + decisions (auto-merge) |
-| 2026-11-24 | e4ab994 | nikhil | N-10 | review | merge: N-10 Postgres test fix into task branch |
-| 2026-11-24 | f715975 | nikhil | N-10 | review | merge: N-10 workflow state machine into task branch |
-| 2026-11-24 | c29e248 | nikhil | N-10 | review | Merge collaboration (N-11) into N-10: fix role-matrix merge, regenerate PROGRESS.md |
-| 2026-11-24 | f5f572d | nikhil | N-10 | review | Merge origin/nikhil/N-10-state-machine into N-10 impl |
-| 2026-11-24 | cd78e6b | nikhil | N-10 | review | fix(workflow): N-10 review fixes |
-| 2026-11-24 | 1df1767 | nikhil | N-11 | review | merge: N-11 What-if simulator backend (auto-merge) |
