@@ -28,6 +28,43 @@ def _user_body():
     }
 
 
+def _event_body():
+    return {
+        "event_id": f"EVT-{7000 + next(_seq)}",
+        "supplier_id": "SUP-NOPE",
+        "event_type": "FACTORY_OUTAGE",
+        "severity": "HIGH",
+        "event_time": "2026-12-02T10:15:00Z",
+    }
+
+
+def _matrix_tenant():
+    from apps.tenants.models import Tenant
+
+    return Tenant.objects.filter(id="TEN-MATRIX").first() or make_tenant("TEN-MATRIX")
+
+
+def _risk_case_body():
+    """An existing event of TEN-MATRIX whose snapshot has no supplier: a valid 200 (flagged)."""
+    from tests.factories import make_event
+
+    event = make_event(_matrix_tenant())
+    return {
+        "event_id": event.event_id,
+        "snapshot": {"captured_at": "2026-12-02T10:00:00Z", "supplier": None},
+    }
+
+
+def _execution_path():
+    from tests.test_execution_callback import running_execution
+
+    return f"{API}internal/executions/{running_execution(_matrix_tenant()).id}/result"
+
+
+def _execution_body():
+    return {"status": "FAILED", "attempt": 1, "error_class": "TRANSIENT", "error": "ERP timeout"}
+
+
 # The expected permissions, written out by hand from docs/CONTRACTS.md s2 + s4 and the DESIGN
 # paragraph of U-04 in tasks/UDAY.md. It is deliberately NOT derived from ROLE_MATRIX: a change
 # to the matrix must fail this test until this table is changed on purpose, too.
@@ -53,8 +90,13 @@ EXPECTED = {
     "internal.execution-result": {"POST": {"SYSTEM"}},
     "integrations.status": {"GET": {"ADMIN"}},
 }
-EXPECTED_ROUTED = {"me.read", "settings.read", "settings.write", "users.read", "users.write",
-                   "audit.read", "recommendations.decision", "what-if"}  # real endpoints today
+# keys that have a real endpoint today; add when routed
+EXPECTED_ROUTED = {
+    "me.read", "settings.read", "settings.write", "users.read", "users.write", "audit.read",
+    "events.create", "demo.simulate", "integrations.status",
+    "internal.risk-cases", "internal.execution-result",
+    "recommendations.decision", "what-if",
+}
 
 # permission_key -> (path, body factory or None). One entry per ROUTED matrix row.
 ROUTES = {
@@ -64,6 +106,12 @@ ROUTES = {
     "users.read": (API + "users", None),
     "users.write": (API + "users", _user_body),
     "audit.read": (API + "audit", None),
+    "events.create": (API + "events/disruptions", _event_body),
+    "demo.simulate": (API + "demo/simulate-disruption", lambda: {"scenario": "demo"}),
+    "integrations.status": (API + "integrations/status", None),
+    "internal.risk-cases": (API + "internal/risk-cases", _risk_case_body),
+    # callable path: a fresh PENDING execution per request
+    "internal.execution-result": (_execution_path, _execution_body),
     # An id that does not exist: wrong roles get 403 before the lookup, the allowed role reaches
     # the lookup and gets 404 (see EXTRA_OK). Real decision flows: test_workflow_decision_api.py.
     "recommendations.decision": (
@@ -76,7 +124,6 @@ ROUTES = {
     ),
 }
 EXTRA_OK = {"recommendations.decision": {404}}  # allowed role + unknown id
-
 
 
 @pytest.fixture(autouse=True)
@@ -95,10 +142,12 @@ def _stub_erp_for_what_if(monkeypatch):
         },
     )
     monkeypatch.setattr("apps.intelligence.views._client", lambda: None)
-OK = {200, 201}
+OK = {200, 201, 202}
 
 
 def _request(client, method, path, body_factory):
+    if callable(path):
+        path = path()
     body = body_factory() if body_factory else None
     return getattr(client, method.lower())(path, body, format="json")
 
@@ -166,7 +215,7 @@ def test_matrix_every_routed_row_for_every_principal(principal):
         path, body = ROUTES[key]
         response = _request(client, method, path, body)
         allowed = principal in EXPECTED[key][method]
-        where = f"{principal} {method} {path} ({key})"
+        where = f"{principal} {method} {key}"
         if allowed:
             ok = OK | EXTRA_OK.get(key, set())
             assert response.status_code in ok, f"{where}: {response.status_code}"
@@ -182,7 +231,7 @@ def test_unauthenticated_is_401_everywhere():
     for key, method in routed_cases():
         path, body = ROUTES[key]
         r = _request(client, method, path, body)
-        assert r.status_code == 401, f"{method} {path}"
+        assert r.status_code == 401, f"{method} {key}"
         assert r.json()["error"]["code"] == "UNAUTHENTICATED"
 
 
@@ -193,7 +242,7 @@ def test_inactive_tenant_user_403_everywhere_for_every_role():
         for key, method in routed_cases():
             path, body = ROUTES[key]
             r = _request(client, method, path, body)
-            assert r.status_code == 403, f"{role} {method} {path}: {r.status_code}"
+            assert r.status_code == 403, f"{role} {method} {key}: {r.status_code}"
 
 
 def test_tenantless_superuser_403_everywhere():
@@ -207,7 +256,7 @@ def test_tenantless_superuser_403_everywhere():
     for key, method in routed_cases():
         path, body = ROUTES[key]
         r = _request(client, method, path, body)
-        assert r.status_code == 403, f"{method} {path}: {r.status_code}"
+        assert r.status_code == 403, f"{method} {key}: {r.status_code}"
 
 
 def test_tenant_params_in_body_and_query_do_not_widen_access():

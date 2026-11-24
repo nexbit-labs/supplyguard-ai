@@ -21,7 +21,8 @@ pytestmark = pytest.mark.django_db
 
 # --- ids ---------------------------------------------------------------------------------------
 def test_data_migration_seeded_the_prefixes():
-    assert set(IdSequence.objects.values_list("prefix", flat=True)) == {"RC", "REC", "APR", "EXE"}
+    prefixes = set(IdSequence.objects.values_list("prefix", flat=True))
+    assert prefixes == {"RC", "REC", "APR", "EXE", "EVT"}
 
 
 def test_next_id_counts_up_and_pads():
