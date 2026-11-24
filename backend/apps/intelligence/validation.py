@@ -69,6 +69,9 @@ def reason(code: str, message: str) -> dict:
 # --------------------------------------------------------------------------- schema
 
 
+MAX_RANK = 1000
+MAX_LEAD_DAYS = Decimal("99999.99")  # Recommendation.estimated_lead_time_days is Decimal(7, 2)
+MAX_COST_AMOUNT = Decimal("999999999999.99")  # estimated_cost_delta is Decimal(14, 2)
 SCHEMA_DIR_ENV = "SG_SCHEMA_DIR"
 SCHEMA_FILES = ("common", "risk_analysis", "recovery_plan")
 
@@ -348,8 +351,25 @@ def _qty_limit_reason(qty: int | None, affected: list[dict], item: str | None, p
     return []
 
 
+def _range_reasons(option: dict) -> list[dict]:
+    """Numbers must fit the Recommendation columns (Decimal 7,2 and 14,2): out of range is
+    unsupported (VALUE_OUT_OF_RANGE) and the persistence step stores null for it."""
+    out = []
+    lead = _dec(option.get("estimated_lead_time_days"))
+    if option.get("estimated_lead_time_days") is not None and (
+        lead is None or abs(lead) > MAX_LEAD_DAYS
+    ):
+        out.append(reason("VALUE_OUT_OF_RANGE", "estimated_lead_time_days is out of range"))
+    cost = option.get("estimated_cost_delta")
+    if cost is not None:
+        amount = _dec(cost.get("amount")) if isinstance(cost, dict) else None
+        if amount is None or abs(amount) > MAX_COST_AMOUNT:
+            out.append(reason("VALUE_OUT_OF_RANGE", "estimated_cost_delta.amount is out of range"))
+    return out
+
+
 def _check_option(option: dict, c: _Ctx) -> list[dict]:
-    reasons: list[dict] = []
+    reasons: list[dict] = _range_reasons(option)
     action = option["proposed_action"]
     change = action["change"]
     po_id = action["po_id"]
@@ -639,14 +659,19 @@ def fact_check_recovery_plan(
         )
     options = plan.get("options") or []
     ranks = [o["rank"] for o in options]
+    # Plan-level: ranks key the Recommendation rows (unique per case + round), so a repeated or
+    # absurd rank makes the whole plan unusable, not just one option.
+    for rank in sorted({r for r in ranks if ranks.count(r) > 1}, key=str):
+        plan_errors.append(
+            reason("DUPLICATE_RANK", f"rank {rank} is used by more than one option")
+        )
+    for rank in ranks:
+        if not isinstance(rank, int) or isinstance(rank, bool) or not 1 <= rank <= MAX_RANK:
+            plan_errors.append(reason("RANK_OUT_OF_RANGE", f"rank {rank!r} is not 1..{MAX_RANK}"))
     seen: set[str] = set()
     results = []
     for option in options:
         reasons = list(plan_errors)  # a plan-wide failure makes every option unsupported
-        if ranks.count(option["rank"]) > 1:
-            reasons.append(
-                reason("DUPLICATE_RANK", f"rank {option['rank']} is used by more than one option")
-            )
         change = dict((option.get("proposed_action") or {}).get("change") or {})
         if _int(change.get("qty")) is not None:
             change["qty"] = _int(change["qty"])
