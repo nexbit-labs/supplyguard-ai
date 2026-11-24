@@ -47,6 +47,8 @@ ROLE_MATRIX: dict[str, Rule] = {
     # ADMIN + PROCUREMENT_MANAGER is the agenda D-2.6 SUGGESTION and is NOT yet approved by
     # the team; change it here (and only here) when the decision is made.
     "audit.read": _rule({"GET": (ADMIN, PROCUREMENT_MANAGER)}),
+    # --- routed by N-07 ---
+    "internal.analysis": _rule({"POST": (SYSTEM,)}),  # routed by N-07
     # --- declared for other tasks, not routed yet ---
     "suppliers.read": _rule({"GET": _READERS}, routed=False),
     "dashboard.read": _rule({"GET": _READERS}, routed=False),
@@ -57,7 +59,6 @@ ROLE_MATRIX: dict[str, Rule] = {
     "events.create": _rule({"POST": (SYSTEM, ADMIN)}),
     "demo.simulate": _rule({"POST": (ADMIN,)}),
     "internal.risk-cases": _rule({"POST": (SYSTEM,)}),
-    "internal.analysis": _rule({"POST": (SYSTEM,)}, routed=False),
     "internal.execution-result": _rule({"POST": (SYSTEM,)}),
     "integrations.status": _rule({"GET": (ADMIN,)}),
 }
