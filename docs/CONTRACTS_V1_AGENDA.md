@@ -51,7 +51,7 @@ Sign-off checklist (matches the S-01 acceptance boxes in `tasks/SHARED.md`):
 |---|---|---|---|---|---|---|
 | D-3.1 | Event field names vs LLD | `data/README.md` | s3 names | s3 wins (see D-0.2) | Accept, no shape change | Nikhil |
 | D-3.2 | Scenario timestamps in `/demo/simulate-disruption` | `data/README.md` | "builds a canonical event from a scenario name" | Scenarios carry their own `event_time`; either replay it, or re-anchor the seed with `--as-of <today>` | Accept: endpoint takes an optional `event_time`, default = scenario value; note in s4. Source phrases this as a caveat, not a hard requirement | Nikhil, Uday |
-| D-3.3 | (new) Unknown supplier event (TC-02) | `data/README.md` scenario `tc02` ("flagged, no impact") | s3 silent | Unknown `supplier_id` is accepted (202); a RiskCase is created and flagged with no affected POs; not a 400 | Accept. Exact HTTP behaviour is not stated in any source, hence the explicit decision | Nikhil, Uday |
+| D-3.3 | (new) Unknown supplier event (TC-02) | `data/README.md` scenario `tc02` ("flagged, no impact") | s3 silent | Unknown `supplier_id` is accepted (202); the event is stored and flagged `needs_data_correction`, NO RiskCase is created and Boomi is NOT called; the response is identical to a known supplier (no way to probe which suppliers exist); not a 400 | Accept. Exact HTTP behaviour is not stated in any source, hence the explicit decision | Nikhil, Uday |
 | D-3.4 | Other topics (`shipment.delay`, `recovery.status`) | s3 | inline only | No schema files for v1 | Accept unchanged | Nikhil |
 
 ## 4. Django REST API (Roop, Uday)
@@ -142,6 +142,25 @@ Not needed for U-03: sections 3, 6, 8 and the other D-5.x, D-2.1 to D-2.3 (JWT l
 
 ### Note on D-0.1 vs D-6.9 (two valid options, pick one on the call)
 The sheet recommends changing the s6 evidence example to `due_date` + `item_id`. `ai/README.md` (line 40) says the validator already accepts header `expected_date` without `item_id` and line `due_date` with `item_id`. Both forms validate, so the example change is optional; the smaller change is to keep both names, keep the example, and add one sentence to s5: header `expected_date` = latest line `due_date`, and PATCH moves the header and every line.
+
+## 11. Follow-ups for the freeze, from U-04 / U-05 / U-06 and Nikhil's N-10 / N-11 (added 2026-11-24)
+These are decided in code already (merged into `collaboration`); the freeze only has to write them into CONTRACTS. Items marked (Nikhil) came from his note of 2026-11-24.
+
+| # | Item | Raised by | Proposal | RECOMMENDED | Approve |
+|---|---|---|---|---|---|
+| D-11.1 | Manual close from ANALYZING (Nikhil) | N-10 | `ANALYZING -> CLOSED` allowed manually: PROCUREMENT_MANAGER or ADMIN, a reason is required. Adds to D-7.1 | Accept | Nikhil, Uday |
+| D-11.2 | New endpoints `POST /risk-cases/{id}/close` (PM or ADMIN) and `POST /risk-cases/{id}/reanalyze` (PM only, REJECTED cases only) (Nikhil) | N-10 | Add to s4 and to the role matrix; both go through `transition()` and write an audit row | Accept | Roop, Nikhil, Uday |
+| D-11.3 | Decision API caller (Nikhil) | N-10 | `POST /recommendations/{id}/decision` takes a human PROCUREMENT_MANAGER token only (ADMIN is excluded). Roop's Flow app must call it with the approving user's own login, never a service key | Accept; Roop confirms the Flow app can pass the user token | Roop, Nikhil |
+| D-11.4 | Execution result callback (Nikhil) | N-10 / U-10 | Result body carries `attempt` (`retry_count + 1`); a stale attempt gets 409 `STALE_EXECUTION_RESULT`; a retry reuses the same execution id | Accept | Nikhil, Uday |
+| D-11.5 | RiskCase creation from an event | U-06 / N-04 | Intake calls `create_risk_case(tenant, event, snapshot)` which returns `(case, created)`; `(None, False)` for an unknown supplier or no affected POs. Error mapping: tenant mismatch, snapshot error and bad value all -> 400 VALIDATION_ERROR with a `snapshot` field; an event flagged for data correction -> 409; an unknown or foreign event -> 404. Replaces the ad-hoc `/internal/risk-cases` wording | Accept | Nikhil, Uday |
+| D-11.6 | Error codes | U-04 / U-06 | Add `INTERNAL_ERROR` (500) and `RATE_LIMITED` (429) to s1; `STALE_EXECUTION_RESULT` (409) | Accept | Roop, Uday |
+| D-11.7 | JWT claims and `/me` | U-04 | Claims `tenant_id` (`TEN-xxx`) and `role`, both re-checked against the DB on every request; `/me` returns id, username, role, tenant_id, tenant name | Accept | Roop, Uday |
+| D-11.8 | Role table | U-04 / U-05 | `audit.read` = ADMIN + PROCUREMENT_MANAGER (D-2.6); ADMIN excluded from decision and retry; the table in `apps/accounts/permissions.py` is the reference | Accept | Roop, Nikhil, Uday |
+| D-11.9 | Event intake bodies | U-06 | Document the bodies of `POST /events/disruptions`, `/events/simulate`, `/events/{id}/status` and the internal execution-result endpoint; outbound Boomi headers `X-Correlation-ID`, `Idempotency-Key` (`tenant:event_id`), `X-Api-Key` or basic auth | Accept | Nikhil, Uday |
+| D-11.10 | Extra RiskCase transitions found in code | U-06 / N-10 | `PENDING_APPROVAL -> ANALYZING` and `RECOMMENDATION_READY -> CLOSED` (D-7.2) in s7 | Accept | Nikhil |
+| D-11.11 | Tenant setting `risk_thresholds.exposure_full_scale` | N-04 (v0.4) | Already in section 10 (v0.4); the seed loader will validate it with the shared tenant-settings validator | Accept | Nikhil |
+
+Decision (not a proposal): the first reading of "needs Nikhil's agreement" in section 10 is closed; Nikhil agreed the RiskCase.status guard on 2026-11-24.
 
 ## After the call (Uday, about 30 min)
 1. Mark every item ACCEPT / MODIFY / REJECT / DEFER (PR description is enough).
