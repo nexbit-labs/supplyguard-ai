@@ -191,6 +191,28 @@ LOGGING = {
 # --- Execution retries (docs/CONTRACTS.md section 10, Execution.retryable) -------------------
 EXECUTION_MAX_RETRIES = env.int("EXECUTION_MAX_RETRIES", default=3)
 
+# --- Workflow triggers (N-10): dotted paths; U-10 / N-09 replace the logging stubs ----------------
+WORKFLOW_EXECUTION_TRIGGER = env(
+    "WORKFLOW_EXECUTION_TRIGGER", default="apps.workflow.hooks.StubExecutionTrigger"
+)
+WORKFLOW_ANALYSIS_TRIGGER = env(
+    "WORKFLOW_ANALYSIS_TRIGGER", default="apps.workflow.hooks.StubAnalysisTrigger"
+)
+
+for _name in ("WORKFLOW_EXECUTION_TRIGGER", "WORKFLOW_ANALYSIS_TRIGGER"):
+    if not globals()[_name].startswith("apps."):
+        from django.core.exceptions import ImproperlyConfigured
+
+        raise ImproperlyConfigured(f"{_name} must be a dotted path inside 'apps.'")
+
 # --- Seed data (manage.py load_seed, docs/CONTRACTS.md section 10) ---------------------------
 # Folder with tenants.json, suppliers.json, ...; default is <repo>/data/seed.
 SEED_DATA_DIR = Path(env("SEED_DATA_DIR", default=str(BASE_DIR.parent / "data" / "seed")))
+
+# --- ERP read access for the what-if simulator (N-11, apps/intelligence/whatif.py) ------------
+# Base URL of the (mock) ERP; X-Api-Key is sent only when ERP_API_KEY is set. Timeout is per call.
+ERP_BASE_URL = env("ERP_BASE_URL", default="http://localhost:8081")
+ERP_API_KEY = env("ERP_API_KEY", default="")
+ERP_TIMEOUT_SECONDS = env.float("ERP_TIMEOUT_SECONDS", default=2.0)
+# Total budget for all (sequential) ERP calls of one what-if; when used up the answer is 504.
+ERP_TOTAL_TIMEOUT_SECONDS = env.float("ERP_TOTAL_TIMEOUT_SECONDS", default=2.5)

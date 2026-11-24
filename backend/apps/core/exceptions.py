@@ -57,7 +57,8 @@ def contract_exception_handler(exc, context):
     else:
         detail = response.data.get("detail") if isinstance(response.data, dict) else None
         message = str(detail) if detail else str(exc)
-        details = {}
+        details = getattr(exc, "contract_details", None)  # workflow reason codes (N-10)
+        details = dict(details) if isinstance(details, dict) else {}
 
     response.data = {
         "error": {
