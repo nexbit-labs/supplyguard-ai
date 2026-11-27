@@ -248,3 +248,12 @@ Template:
 - Next: confirm auto-merge of R-05/R-07/R-08; live checks; R-06 Flow build in Boomi UI
 - Blockers: backend gaps (executions retry, approvals queue, roles, user update) for Nikhil/Uday; U-07 chain for R-04 simulate AC
 - Models used: advisor opus; 4 nested sessions + R-06 session sonnet/medium; implementer subagents; test-runner haiku; reviewer-lite sonnet
+
+## 2026-11-27 - nikhil - review tasks closed
+- Branch: nikhil/N-13-ai-tests--close (from origin/collaboration 8ff18bf)
+- Did: set N-01, N-02, N-03, N-04, N-05, N-06, N-07, N-09, N-10, N-11, N-13 to done with Done-in merge hashes; ticked N-02 box 3 (seed loaded by load_seed and served by mock ERP, verified locally); deferred acceptance noted: N-01 box 1 (S-01 freeze), N-03 compose box (Docker unavailable, uvicorn check instead); N-09 Boomi wiring continues under N-08; N-11 follow-up "bound start to ±5 years" noted. Handoff block updated; PROGRESS.md regenerated.
+- Tests: docs only, no code changed.
+- Status now: 11 of 14 done; N-08 todo (blocked on U-07), N-14 todo (blocked on U-10/U-11), N-12 optional todo
+- Next: N-08 Boomi build once U-07 lands; N-14 after U-10/U-11
+- Blockers: U-07, U-10, U-11
+- Models used: haiku 5.5

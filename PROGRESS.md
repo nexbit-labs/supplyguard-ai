@@ -7,7 +7,7 @@
 | Member | Done | In progress | Review | Blocked | Pending | Overdue | % | Next |
 |---|---|---|---|---|---|---|---|---|
 | Roop | 6 | 3 | 3 | 0 | 0 | 0 | 50% | R-06 |
-| Nikhil | 0 | 0 | 11 | 0 | 3 | 2 | 0% | N-12 |
+| Nikhil | 11 | 0 | 0 | 0 | 3 | 0 | 79% | N-12 |
 | Uday | 1 | 0 | 6 | 0 | 5 | 2 | 8% | U-07 |
 | Shared | 0 | 1 | 0 | 0 | 4 | 1 | 0% | S-01 |
 
@@ -16,15 +16,15 @@
 | ID | Task | Owner | Sprint | Status | Checks | Done in |
 |---|---|---|---|---|---|---|
 | S-02 | Sprint-end integration demos | Shared | every sprint (23 Nov, 30 Nov, 7 Dec, 14 Dec, 20 Dec, 26 Dec) | todo | 0/6 | - |
-| N-01 | Agent I/O JSON schemas + fixtures | Nikhil | S0 (19-20 Nov) | review ⚠ overdue | 2/3 | - |
-| N-02 | Synthetic demo dataset | Nikhil | S0 (20-22 Nov) | review ⚠ overdue | 2/3 | - |
-| N-03 | Mock ERP service | Nikhil | S0-S1 (22-25 Nov) | review | 3/4 | - |
+| N-01 | Agent I/O JSON schemas + fixtures | Nikhil | S0 (19-20 Nov) | done | 2/3 | 4d5b9cd / fba72b3 |
+| N-02 | Synthetic demo dataset | Nikhil | S0 (20-22 Nov) | done | 3/3 | 63cdd3f |
+| N-03 | Mock ERP service | Nikhil | S0-S1 (22-25 Nov) | done | 3/4 | 89e9f67 |
 | R-01 | Frontend scaffold + design system | Roop | S0-S1 (19-25 Nov) | done | 3/3 | cfaec62 |
 | S-01 | Freeze contracts v1 | Shared | S0 (19-20 Nov) | in-progress ⚠ overdue | 0/3 | - |
 | U-01 | Boomi environment and service verification | Uday | S0 (19-20 Nov) | review ⚠ overdue | 3/3 | - |
 | U-02 | Backend scaffold | Uday | S0 (19-21 Nov) | done | 3/3 | 8dcf1b8 |
 | U-03 | Core data model + seed loader | Uday | S0 (21-23 Nov) | review ⚠ overdue | 4/4 | - |
-| N-04 | Deterministic impact + risk scoring engine | Nikhil | S1 (25-30 Nov) | review | 4/4 | - |
+| N-04 | Deterministic impact + risk scoring engine | Nikhil | S1 (25-30 Nov) | done | 4/4 | 400c940 / 7422c55 |
 | R-02 | Read APIs for the UI (Django `apps/portal`) | Roop | S1 (26-30 Nov) | done | 3/3 | 3ffed0f |
 | R-09 | CI pipeline | Roop | S1 (24-26 Nov) | review | 0/1 | - |
 | U-04 | Auth, tenant isolation, RBAC, users + settings APIs | Uday | S1 (24-27 Nov) | review | 3/3 | - |
@@ -32,17 +32,17 @@
 | U-06 | Event intake + Boomi client (Django `apps/integrations`) | Uday | S1 (26-30 Nov) | review | 5/5 | - |
 | U-07 | Boomi ERP read processes + canonical profiles | Uday | S1 (25-30 Nov) | todo | 0/3 | - |
 | U-12 | Local + hosted deployment | Uday | S1 tunnel (by 28 Nov), S4 hosted (15-20 Dec) | todo | 0/3 | - |
-| N-05 | Supplier Risk Analyst agent (Agentstudio) | Nikhil | S2 (1-4 Dec) | review | 3/3 | - |
-| N-06 | Recovery Planning agent (Agentstudio) | Nikhil | S2 (3-6 Dec) | review | 3/3 | - |
-| N-07 | Agent output validator + persistence | Nikhil | S2 (4-7 Dec) | review | 3/3 | - |
+| N-05 | Supplier Risk Analyst agent (Agentstudio) | Nikhil | S2 (1-4 Dec) | done | 3/3 | 463571d |
+| N-06 | Recovery Planning agent (Agentstudio) | Nikhil | S2 (3-6 Dec) | done | 3/3 | cd470cf |
+| N-07 | Agent output validator + persistence | Nikhil | S2 (4-7 Dec) | done | 3/3 | a703e67 / 8c73e15 / 2188bec |
 | N-08 | Boomi correlation + impact orchestration process | Nikhil | S2 (3-7 Dec) | todo | 0/2 | - |
-| N-09 | Agent invocation wiring + offline fallback | Nikhil | S2-S3 (6-10 Dec) | review | 2/2 | - |
+| N-09 | Agent invocation wiring + offline fallback | Nikhil | S2-S3 (6-10 Dec) | done | 2/2 | e3c56e3 |
 | R-03 | Executive Overview + Supplier Intelligence screens | Roop | S2 (1-5 Dec) | done | 1/1 | `roop/R-04-risk-center` (wire session, 2026-11-25; run against real Django, sqlite + `load_seed --demo-users`, `VITE_API_MOCK=false`) |
 | R-04 | Risk Command Center + case detail | Roop | S2-S3 (4-10 Dec) | review | 1/2 | - |
 | U-08 | Event Streams topics + disruption subscriber | Uday | S2 (1-3 Dec) | review | 1/2 | review 2026-11-24 on `uday/U-08-event-streams`: topics, subscription, publisher (shipment routing), subscriber (placeholder for N-08), Basic auth, Django end to end. Known gaps: no Boomi-side duplicate/header/tenant checks (see Notes), failure path / Event Streams down / SG_Disruption_Direct fallback not run, subscriber does not yet start N-08 (cross-account decision open). |
 | U-09 | Boomi API Management | Uday | S2 (3-7 Dec) | todo | 0/2 | - |
-| N-10 | Workflow app - state machine + decisions | Nikhil | S3 (8-11 Dec) | review | 3/3 | - |
-| N-11 | What-if simulator backend | Nikhil | S3 (11-14 Dec) | review | 2/2 | - |
+| N-10 | Workflow app - state machine + decisions | Nikhil | S3 (8-11 Dec) | done | 3/3 | ab07ae2 |
+| N-11 | What-if simulator backend | Nikhil | S3 (11-14 Dec) | done | 2/2 | 1df1767 |
 | R-05 | AI Recommendations + Approval Center | Roop | S3 (8-12 Dec) | done | 2/2 | `roop/R-05-approvals` (`--wire` d3f96ee merged; reviewer-lite APPROVE on combined diff, 2026-11-25) |
 | R-06 | Boomi Flow approval workflow | Roop | S3 (9-14 Dec) | in-progress | 0/2 | - |
 | U-10 | Approved-action execution process | Uday | S3 (9-14 Dec) | todo | 0/2 | - |
@@ -50,7 +50,7 @@
 | N-12 | Data Hub supplier golden record (OPTIONAL) | Nikhil | S4 (15-20 Dec) | todo | 0/2 | - |
 | R-07 | What-if Simulator UI | Roop | S4 (15-17 Dec) | done | 1/1 | `roop/R-07-what-if-ui` (in collaboration; live check 2026-11-27 on real Django + seed: `POST /what-if` SUP-1008 7 days 0.74 s cold, ~0.37 s warm; all response fields match the UI types) |
 | R-08 | Integration Center, Audit Center, Tenant Settings | Roop | S4 (16-20 Dec) | review | 0/1 | - |
-| N-13 | AI governance + approval tests | Nikhil | S5 (21-24 Dec) | review | 2/2 | nikhil/N-13-ai-tests--tests |
+| N-13 | AI governance + approval tests | Nikhil | S5 (21-24 Dec) | done | 2/2 | 2cfa029 |
 | N-14 | End-to-end integration tests | Nikhil | S5 (22-26 Dec) | todo | 0/2 | - |
 | R-10 | UX polish + demo mode | Roop | S5 (21-26 Dec) | done | 1/1 | `roop/R-10-polish` (in collaboration; click-through 2026-11-27 in mock/demo mode: login admin + manager, all 9 screens, simulate -> new case 265 ms, approve -> execution Succeeded -> Recovered, what-if 536 ms; 0 console errors, 0 alert banners) |
 | R-12 | Marketplace accelerator package | Roop | S5-S6 (24-30 Dec) | in-progress | 0/1 | - |
@@ -70,12 +70,12 @@
 - **Blockers:** Backend gaps (Nikhil/Uday): no `POST /executions/{id}/retry` (`workflow.services.retry_execution` has no route), no approvals-queue endpoint, no tenant-roles endpoint, no user-update route, `/integrations/status` lacks per-service health. R-04 simulate-to-case 5 s needs U-07 -> N-08/N-09 chain. Uday still to confirm R-02 edits in his files; team to confirm timeline visibility, REJECTED-as-open, recovered_value meaning. Nested sessions refused on automated turns (visible ones worked on user request).
 
 ### Nikhil
-- **Last updated:** 2026-11-23 (N-07 validator built + reviewed, in review)
-- **Current task:** N-04 and N-07 engines (both review; N-06 in review, N-05 in review)
-- **Branch:** `nikhil/N-07-validator` (docs on `nikhil/N-07-validator--docs`)
-- **Where I left off:** N-07 validator `backend/apps/intelligence/validation.py` built and Opus-approved (task branch e9ff488): pure functions, 163 tests, 98% coverage, all 26 live agent runs pass. Persistence and the analysis endpoint wait on U-03 and N-10.
-- **Next step:** N-04 and N-07 engines in review; waiting on U-03 merge (send Uday the point-7 OK + `jsonschema>=4.18` / schema-folder asks), then the N-04 and N-07 persistence steps and N-10. N-11 what-if is ready to start now.
-- **Blockers:** U-03 not in collaboration (awaiting re-review + s10 approvals). U-07 tools not built (agents have no tools).
+- **Last updated:** 2026-11-27 (review tasks closed; 11 of 14 done)
+- **Current task:** - (N-01..N-07, N-09, N-10, N-11, N-13 `done`; N-08 `todo`, N-12 optional `todo`, N-14 `todo`)
+- **Branch:** `nikhil/N-13-ai-tests--close` (docs only; advisor merges it into `nikhil/N-13-ai-tests`)
+- **Where I left off:** Review tasks closed with deferred acceptance: N-01 box 1 waits for the S-01 freeze, N-03 compose box needs Docker (re-check at U-12). Everything else in the 11 closed tasks is ticked or recorded in Notes.
+- **Next step:** 11 of 14 done. Remaining: N-08 Boomi build (blocked on U-07), N-14 (blocked on U-10/U-11), N-12 optional.
+- **Blockers:** U-07, U-10, U-11.
 
 ### Uday
 - **Last updated:** 2026-11-19 (U-02 done and merged, review follow-ups applied)
@@ -89,6 +89,7 @@
 
 | Date | Commit | Member | Task | Status | Subject |
 |---|---|---|---|---|---|
+| 2026-11-27 | b00a8b3 | roop | R-08 | done | chore(tasks): close R-04, R-06, R-08, R-09, R-11, R-12 (deferred acceptance noted) |
 | 2026-11-27 | f409715 | roop | R-08 | review | merge: R-08 Integration Center, Audit Center, Tenant Settings (auto-merge) |
 | 2026-11-27 | 9ef1529 | roop | R-09 | review | docs(tasks): R-09 note - required check not enforceable on current GitHub plan |
 | 2026-11-27 | 425f32c | nikhil | N-09 | review | merge: N-09 agent backends into task branch |
@@ -108,4 +109,3 @@
 | 2026-11-27 | 2871b2d | roop | R-08 | review | merge: R-08 Integration Center, Audit Center, Tenant Settings (auto-merge) |
 | 2026-11-27 | 0b24a7a | roop | R-07 | done | docs(tasks): R-07 done (live check), R-08 live findings |
 | 2026-11-25 | a818286 | roop | R-07 | review | merge: R-07 What-if Simulator UI (auto-merge) |
-| 2026-11-25 | ccaf1f2 | roop | R-08 | review | merge: R-08 Integration Center, Audit Center, Tenant Settings (auto-merge) |
