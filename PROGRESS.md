@@ -89,7 +89,9 @@
 
 | Date | Commit | Member | Task | Status | Subject |
 |---|---|---|---|---|---|
-| 2026-11-27 | b00a8b3 | roop | R-08 | done | chore(tasks): close R-04, R-06, R-08, R-09, R-11, R-12 (deferred acceptance noted) |
+| 2026-11-27 | 8145eff | nikhil | N-13 | done | merge: close Nikhil review tasks into task branch |
+| 2026-11-27 | d8cfa59 | nikhil | N-13 | done | merge: N-13 AI governance + approval tests (auto-merge) |
+| 2026-11-27 | 741605c | nikhil | N-13 | done | docs(tasks): close Nikhil review tasks (deferred acceptance noted) |
 | 2026-11-27 | f409715 | roop | R-08 | review | merge: R-08 Integration Center, Audit Center, Tenant Settings (auto-merge) |
 | 2026-11-27 | 9ef1529 | roop | R-09 | review | docs(tasks): R-09 note - required check not enforceable on current GitHub plan |
 | 2026-11-27 | 425f32c | nikhil | N-09 | review | merge: N-09 agent backends into task branch |
@@ -107,5 +109,3 @@
 | 2026-11-27 | 8adbe00 | roop | R-08 | review | merge: R-08 Integration Center, Audit Center, Tenant Settings (auto-merge) |
 | 2026-11-27 | b46f71b | roop | R-08 | review | fix(frontend): align simulate result, audit actions/filters and null analysis with live backend |
 | 2026-11-27 | 2871b2d | roop | R-08 | review | merge: R-08 Integration Center, Audit Center, Tenant Settings (auto-merge) |
-| 2026-11-27 | 0b24a7a | roop | R-07 | done | docs(tasks): R-07 done (live check), R-08 live findings |
-| 2026-11-25 | a818286 | roop | R-07 | review | merge: R-07 What-if Simulator UI (auto-merge) |
